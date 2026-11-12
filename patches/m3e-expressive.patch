@@ -1,0 +1,19 @@
+diff --git a/Telegram/SourceFiles/ui/chat/chat.style b/Telegram/SourceFiles/ui/chat/chat.style
+index f9bb489..e2298d4 100644
+--- a/Telegram/SourceFiles/ui/chat/chat.style
++++ b/Telegram/SourceFiles/ui/chat/chat.style
+@@ -323,8 +323,12 @@ historyInfoToast: Toast(defaultToast) {
+ }
+ historyInfoToastIcon: icon {{ "toast/info", toastFg }};
+ 
+-bubbleRadiusSmall: roundRadiusLarge;
+-bubbleRadiusLarge: 16px;
++// m3eGram (Material 3 Expressive): uniform 20dp bubble corners.
++// 20 is the bold corner step added in M3 Expressive; using it for both
++// small and large rounding keeps every bubble on the MD3 shape scale
++// (the "use small bubble radius" option now keeps MD3 geometry too).
++bubbleRadiusSmall: 20px;
++bubbleRadiusLarge: 20px;
+ 
+ historyPhotoLeft: 14px;
+ historyPhotoBubbleMinWidth: 200px;

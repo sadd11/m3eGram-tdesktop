@@ -1,0 +1,67 @@
+name: Build tdesktop Linux (m3eGram MD3 Expressive)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  linux:
+    name: Linux build (Docker, official centos_env)
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Verify API credentials
+        env:
+          ID: ${{ secrets.TDESKTOP_API_ID }}
+          HASH: ${{ secrets.TDESKTOP_API_HASH }}
+        run: |
+          if [ -z "$ID" ] || [ -z "$HASH" ]; then
+            echo "::error::Add repository secrets TDESKTOP_API_ID and TDESKTOP_API_HASH. Get them free at https://my.telegram.org → 'API development tools' (see docs/api_credentials.md)."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Free disk space (~30 GB for the lib-building Docker image)
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          huggingface: true
+          docker-images: false
+          large-packages: true
+          swap-storage: false
+
+      - name: Prepare Docker build environment (compiles Qt/FFmpeg/etc into the image, slow)
+        run: |
+          pip install --quiet poetry
+          ./Telegram/build/prepare/linux.sh
+
+      - name: Compile tdesktop
+        env:
+          API_ID: ${{ secrets.TDESKTOP_API_ID }}
+          API_HASH: ${{ secrets.TDESKTOP_API_HASH }}
+        run: |
+          docker run --rm -u "$(id -u):$(id -g)" \
+            -v "$PWD:/usr/src/tdesktop" \
+            tdesktop:centos_env \
+            /usr/src/tdesktop/Telegram/build/docker/centos_env/build.sh \
+            -D TDESKTOP_API_ID="$API_ID" \
+            -D TDESKTOP_API_HASH="$API_HASH"
+
+      - name: Collect artifacts
+        run: |
+          find out -maxdepth 2 -type f | head -30
+          mkdir -p dist
+          cp -v out/Release/Telegram dist/Telegram-m3e-expressive
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tdesktop-m3e-expressive-linux
+          path: dist/
+          if-no-files-found: error

@@ -1,0 +1,63 @@
+name: Build tdesktop Windows (m3eGram MD3 Expressive, experimental)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    name: Windows x64 (MSVC / VS2026 runner image)
+    runs-on: windows-latest
+    timeout-minutes: 360
+    steps:
+      - name: Verify API credentials
+        shell: bash
+        env:
+          ID: ${{ secrets.TDESKTOP_API_ID }}
+          HASH: ${{ secrets.TDESKTOP_API_HASH }}
+        run: |
+          if [ -z "$ID" ] || [ -z "$HASH" ]; then
+            echo "::error::Add repository secrets TDESKTOP_API_ID and TDESKTOP_API_HASH. Get them free at https://my.telegram.org → 'API development tools'."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # windows-latest image ships Visual Studio 2026 (required by current tdesktop docs)
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Prepare libraries (downloads and builds Qt/FFmpeg/openssl etc, slow)
+        shell: cmd
+        run: Telegram\build\prepare\win.bat
+
+      - name: Configure x64
+        shell: cmd
+        env:
+          TDESKTOP_API_ID: ${{ secrets.TDESKTOP_API_ID }}
+          TDESKTOP_API_HASH: ${{ secrets.TDESKTOP_API_HASH }}
+        run: |
+          cd Telegram
+          configure.bat x64 -D TDESKTOP_API_ID=%TDESKTOP_API_ID% -D TDESKTOP_API_HASH=%TDESKTOP_API_HASH%
+
+      - name: Build
+        shell: cmd
+        run: |
+          cd Telegram
+          cmake --build ../out --config Release
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          find out -maxdepth 2 -type f | head -30
+          mkdir -p dist
+          cp -v out/Release/Telegram.exe dist/Telegram-m3e-expressive-win64.exe
+          cp -v out/Release/*.pdb dist/ 2>/dev/null || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tdesktop-m3e-expressive-win64
+          path: dist/
+          if-no-files-found: error
