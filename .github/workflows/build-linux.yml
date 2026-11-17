@@ -41,7 +41,10 @@ jobs:
       - name: Prepare Docker build environment (compiles Qt/FFmpeg/etc into the image, slow)
         run: |
           pip install --quiet poetry
-          ./Telegram/build/prepare/linux.sh
+          cd Telegram/build/docker/centos_env
+          poetry install
+          # release-style libs: no debug info, no LTO — matches upstream CI, fits in job timeout
+          DEBUG= LTO= poetry run gen_dockerfile | DOCKER_BUILDKIT=1 docker build -t tdesktop:centos_env -
 
       - name: Compile tdesktop
         env:

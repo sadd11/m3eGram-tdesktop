@@ -5,8 +5,8 @@ on:
 
 jobs:
   windows:
-    name: Windows x64 (MSVC / VS2026 runner image)
-    runs-on: windows-latest
+    name: Windows x64 (MSVC, VS2022 v143 toolset)
+    runs-on: windows-2022
     timeout-minutes: 360
     steps:
       - name: Verify API credentials
@@ -25,7 +25,8 @@ jobs:
           fetch-depth: 1
           submodules: recursive
 
-      # windows-latest image ships Visual Studio 2026 (required by current tdesktop docs)
+      # windows-2022: default toolset v143/14.44 matches cmake_helpers -T v143,
+      # ~100GB on D: for Libraries (windows-2025-vs2026 lost D:\ and has ~33GB)
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
