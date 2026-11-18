@@ -48,7 +48,7 @@ jobs:
         shell: cmd
         run: |
           cd Telegram
-          cmake --build ../out --config Release
+          cmake --build ../out --config Release --target Telegram
 
       - name: Collect artifacts
         shell: bash
