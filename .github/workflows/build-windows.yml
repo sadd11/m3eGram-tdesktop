@@ -46,6 +46,10 @@ jobs:
 
       - name: Build
         shell: cmd
+        env:
+          # /Zi (PDB) instead of embedded /Z7 — cl.exe stops dying with C1060
+          # out of heap on huge translation units like window_themes_chat.cpp
+          _CL_: /Zi
         run: |
           cd Telegram
           cmake --build ../out --config Release --target Telegram
