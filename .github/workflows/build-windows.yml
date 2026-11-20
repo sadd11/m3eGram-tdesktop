@@ -47,9 +47,17 @@ jobs:
       - name: Build
         shell: cmd
         env:
-          # /Zi (PDB) instead of embedded /Z7 — cl.exe stops dying with C1060
-          # out of heap on huge translation units like window_themes_chat.cpp
-          _CL_: /Zi
+          # /Zd (line-number-only debug info) overrides the project's /Z7 via
+          # D9025 last-wins. Fixes BOTH failure modes seen in this job:
+          #  - no C1060 (cl generates far less debug info than /Z7 or /Zi)
+          #  - no shared vc143.pdb LIMIT(12) / C2471 cascade: the compile-time
+          #    PDB stays tiny; /Zi pushed ~1200 TUs of full debug info into one
+          #    PDB that hit the PDB format ceiling (error code 12 = LIMIT).
+          _CL_: /Zd /Zf
+          # Link-side insurance: raise the Telegram.pdb page ceiling from the
+          # default 4 GiB (4KiB pages) to 16 GiB, so /DEBUG link can never hit
+          # LNK1318 "Unexpected PDB error; LIMIT (12)".
+          _LINK_: /pdbpagesize:16384
         run: |
           cd Telegram
           cmake --build ../out --config Release --target Telegram
