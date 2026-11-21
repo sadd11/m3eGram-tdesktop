@@ -48,7 +48,7 @@ scheduleRepeatDropdownArrow: IconEmoji {
 	padding: margins(6px, 5px, 0px, 0px);
 }
 scheduleRepeatHeight: 28px;
-scheduleRepeatRadius: 14px;
+scheduleRepeatRadius: 16px;
 scheduleRepeatTextPadding: 12px;
 scheduleRepeatLabel: FlatLabel(defaultFlatLabel) {
 	style: TextStyle(defaultTextStyle) {

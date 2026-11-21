@@ -9,7 +9,7 @@ using "boxes/boxes.style";
 
 aiComposeStyleTabsBg: boxBg;
 aiComposeStyleTabsHeight: 64px;
-aiComposeStyleTabsRadius: 14px;
+aiComposeStyleTabsRadius: 16px;
 aiComposeStyleTabsSkip: 4px;
 aiComposeStyleButtonBgActive: aiComposeButtonBgActive;
 aiComposeStyleLabelFg: aiComposeButtonFg;

@@ -24,7 +24,7 @@ filterLinkAbout: FlatLabel(defaultFlatLabel) {
 filterLinkAboutTop: 170px;
 filterLinkAboutBottom: 15px;
 filterLinkPreview: 96px;
-filterLinkPreviewRadius: 13px;
+filterLinkPreviewRadius: 12px;
 filterLinkPreviewTop: 30px;
 filterLinkPreviewColumn: 65px;
 filterLinkPreviewAllBottom: 18px;

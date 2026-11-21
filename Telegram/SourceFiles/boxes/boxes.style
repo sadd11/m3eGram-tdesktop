@@ -627,7 +627,7 @@ peerQrGift: IconButton(peerQrColors) {
 }
 peerQrPanelMargin: 10px;
 peerQrPanelPadding: 11px;
-peerQrPanelRadius: 24px;
+peerQrPanelRadius: 28px;
 peerQrPanelFade: 14px;
 peerQrPanelSkip: 12px;
 peerQrPanelScroll: ScrollArea(defaultScrollArea) {
@@ -657,7 +657,7 @@ peerQrGiftSymbolSkipY: 33px;
 peerQrGiftSymbolJitterX: 17px;
 peerQrGiftSymbolJitterY: 14px;
 peerQrGiftSkip: 9px;
-peerQrGiftRadius: 14px;
+peerQrGiftRadius: 16px;
 peerQrGiftsEmptyPadding: margins(16px, 8px, 16px, 12px);
 peerQrGiftsEmptySticker: 80px;
 peerQrGiftsEmptyTitleSkip: 4px;

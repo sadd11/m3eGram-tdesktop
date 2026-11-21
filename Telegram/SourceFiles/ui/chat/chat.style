@@ -146,7 +146,7 @@ outTextPaletteSelected: TextPalette(outTextPalette) {
 fwdTextUserpicPadding: margins(0px, 1px, 3px, 0px);
 nameRippleRadius: 4px;
 nameRipplePadding: margins(3px, 1px, 3px, 1px);
-linkRippleRadius: 3px;
+linkRippleRadius: 4px;
 linkRipplePadding: margins(3px, 0px, 3px, 0px);
 fwdTextStyle: TextStyle(semiboldTextStyle) {
 	linkUnderline: kLinkUnderlineNever;
@@ -765,7 +765,7 @@ unsupportedNoticeBadgeSize: 36px;
 unsupportedNoticeBadgeSkip: 10px;
 unsupportedNoticeButtonHeight: 30px;
 unsupportedNoticeButtonPadding: margins(12px, 0px, 12px, 0px);
-unsupportedNoticeRadius: 10px;
+unsupportedNoticeRadius: 12px;
 unsupportedNoticeMaxWidth: 430px;
 unsupportedGapSkip: 10px;
 unsupportedTearAmplitude: 5px;

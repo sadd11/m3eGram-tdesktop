@@ -10,7 +10,7 @@ using "boxes/boxes.style";
 colorEditWidth: 390px;
 colorEditSkip: 10px;
 colorPickerSize: 256px;
-colorPickerMarkRadius: 6px;
+colorPickerMarkRadius: 8px;
 colorPickerMarkLine: 1px;
 colorSliderSkip: 8px;
 colorSliderArrowLeft: icon {{ "color_slider_arrow", sliderBgActive }};

@@ -22,7 +22,7 @@ statisticsDetailsArrowStroke: 1.5;
 statisticsDetailsPopupMargins: margins(12px, 8px, 12px, 11px);
 statisticsDetailsPopupPadding: margins(6px, 6px, 6px, 6px);
 statisticsDetailsPopupMidLineSpace: 4px;
-statisticsDetailsDotRadius: 5px;
+statisticsDetailsDotRadius: 4px;
 statisticsChartLineWidth: 2px;
 
 statisticsChartFooterSkip: 11px;
@@ -30,7 +30,7 @@ statisticsChartFooterHeight: 42px;
 statisticsChartFooterBetweenSide: 5px;
 statisticsChartFooterSideWidth: 10px;
 statisticsChartFooterArrowHeight: 10px;
-statisticsChartFooterSideRadius: 6px;
+statisticsChartFooterSideRadius: 8px;
 
 statisticsChartRulerCaptionSkip: 4px;
 

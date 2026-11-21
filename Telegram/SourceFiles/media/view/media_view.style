@@ -91,7 +91,7 @@ mediaviewFullScreenOutIcon: icon {{ "player/player_minimize", mediaviewPlaybackI
 mediaviewFullScreenOutIconOver: icon {{ "player/player_minimize", mediaviewPlaybackIconFgOver }};
 
 mediaviewVolumeWidth: 75px;
-mediaviewControllerRadius: 9px;
+mediaviewControllerRadius: 8px;
 
 mediaviewVolumeIcon0: icon {{ "player/player_volume_off", mediaviewPlaybackIconFg }};
 mediaviewVolumeIcon0Over: icon {{ "player/player_volume_off", mediaviewPlaybackIconFgOver }};
@@ -286,7 +286,7 @@ mediaviewSwipeDistance: 80px;
 
 mediaviewCaptionPadding: margins(11px, 6px, 11px, 6px);
 mediaviewCaptionMargin: size(11px, 11px);
-mediaviewCaptionRadius: 6px;
+mediaviewCaptionRadius: 8px;
 
 mediaviewGroupPadding: margins(0px, 14px, 0px, 14px);
 mediaviewGroupHeight: 80px;
@@ -775,7 +775,7 @@ storiesChooseSendAs: ChooseSendAs(defaultChooseSendAs) {
 storiesCommentSentAt: Menu(storiesMenu, whoSentItem) {
 	itemFgDisabled: groupCallMembersFg;
 }
-storiesComposeRadius: 21px;
+storiesComposeRadius: 20px;
 storiesComposeControls: ComposeControls(defaultComposeControls) {
 	bg: storiesComposeBg;
 	radius: storiesComposeRadius;

@@ -152,7 +152,7 @@ aiTonePreviewAttributionLabel: FlatLabel(defaultFlatLabel) {
 }
 aiTonePreviewAttributionMargin: margins(16px, 10px, 16px, 8px);
 aiTonePreviewExampleCardBg: boxBg;
-aiTonePreviewExampleCardRadius: 22px;
+aiTonePreviewExampleCardRadius: 20px;
 aiTonePreviewExampleCardPadding: margins(14px, 12px, 16px, 12px);
 aiTonePreviewExampleCardSectionSkip: 24px;
 aiTonePreviewExampleCardTitleSkip: 6px;
@@ -173,7 +173,7 @@ aiTonePreviewAnotherExampleIcon: IconEmoji {
 }
 aiComposeToneRemovedToastIcon: icon {{ "menu/delete", toastFg }};
 aiComposeCardBg: boxBg;
-aiComposeCardRadius: 22px;
+aiComposeCardRadius: 20px;
 aiComposeCardPadding: margins(12px, 16px, 16px, 16px);
 aiComposeCardSectionSkip: 12px;
 aiComposeCardControlSkip: 8px;

@@ -287,7 +287,7 @@ settingsTheme: Checkbox(defaultCheckbox) {
 
 settingsThemePreviewSize: size(80px, 92px);
 settingsThemeBubbleSize: size(40px, 14px);
-settingsThemeBubbleRadius: 2px;
+settingsThemeBubbleRadius: 4px;
 settingsThemeBubblePosition: point(6px, 8px);
 settingsThemeBubbleSkip: 6px;
 settingsThemeRadioBottom: 12px;
@@ -300,7 +300,7 @@ settingsThemeNotSupportedIcon: icon {{ "theme_preview", menuIconFg }};
 chatThemeTitlePadding: margins(22px, 13px, 22px, 9px);
 chatThemePreviewSize: size(80px, 108px);
 chatThemeBubbleSize: size(48px, 22px);
-chatThemeBubbleRadius: 10px;
+chatThemeBubbleRadius: 12px;
 chatThemeBubblePosition: point(6px, 12px);
 chatThemeBubbleSkip: 6px;
 chatThemeEntrySkip: 10px;
@@ -441,7 +441,7 @@ settingsUsernameLeft: settingsNameLeft;
 settingsUsernameTop: 58px;
 settingsPeerToPeerSkip: 9px;
 
-settingsIconRadius: 6px;
+settingsIconRadius: 8px;
 
 settingsReactionRightIcon: 20px;
 settingsReactionsIslandPadding: margins(12px, 12px, 12px, 4px);
@@ -584,7 +584,7 @@ settingsColorSampleCutout: 3px;
 settingsColorProfileSampleShift: 5px;
 settingsColorSampleSize: 20px;
 settingsColorSampleCenter: 6px;
-settingsColorSampleCenterRadius: 2px;
+settingsColorSampleCenterRadius: 4px;
 settingsColorSamplePadding: margins(8px, 2px, 8px, 2px);
 settingsColorSampleSkip: 6px;
 settingsColorButton: SettingsButton(settingsButton) {

@@ -630,7 +630,7 @@ whoReadClose: IconButton(stickerPanRemoveSet) {
 	icon: smallCloseIconOver;
 	rippleAreaSize: 20px;
 }
-whoReadCloseVisibleRadius: 7px;
+whoReadCloseVisibleRadius: 8px;
 whoReadCloseBlurPadding: 5px;
 stickerIconMove: 400;
 stickerPreviewDuration: 150;
@@ -1240,7 +1240,7 @@ historyPullNextArrowSize: 24px;
 historyPullNextArrowRaise: 20px;
 historyPullNextRise: 35px;
 historyPullNextNameTop: 20px;
-historyPullNextNameRadius: 15px;
+historyPullNextNameRadius: 16px;
 historyPullNextHintSlide: 10px;
 historyPullNextBounce: 4px;
 historyPullNextBadgeFont: font(12px semibold);
@@ -1486,7 +1486,7 @@ historyRecordWaveformBgMargins: margins(5px, 8px, 5px, 9px);
 
 historyRecordTooltip: ImportantTooltip(defaultImportantTooltip) {
 	padding: margins(4px, 4px, 4px, 4px);
-	radius: 11px;
+	radius: 12px;
 	arrow: 6px;
 }
 
@@ -1860,7 +1860,7 @@ topPeersSelectorSkip: point(9px, -5px);
 
 topPeersSelectorImportantTooltip: ImportantTooltip(defaultImportantTooltip) {
 	bg: msgServiceBg;
-	radius: 9px;
+	radius: 12px;
 }
 topPeersSelectorImportantTooltipLabel: FlatLabel(defaultImportantTooltipLabel) {
 	style: TextStyle(defaultTextStyle) {

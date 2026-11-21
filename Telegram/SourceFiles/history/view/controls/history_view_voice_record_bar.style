@@ -11,7 +11,7 @@ using "media/player/media_player.style";
 historyRecordVoiceOnceBg: icon {{ "voice_lock/audio_once_bg", historySendIconFg }};
 historyRecordVoiceOnceFg: icon {{ "voice_lock/audio_once_number", windowFgActive }};
 historyRecordVoiceOnceInactive: icon {{ "chat/audio_once", windowSubTextFg }};
-historyRecordSignalRadius: 5px;
+historyRecordSignalRadius: 4px;
 historyRecordFont: font(13px);
 historyRecordDurationSkip: 12px;
 historyRecordTextStyle: TextStyle(defaultTextStyle) {
@@ -33,7 +33,7 @@ historyRecordLockMargin: margins(4px, 4px, 4px, 4px);
 historyRecordLockInput: icon {{ "voice_lock/input_mic_s", historyToDownFg }};
 historyRecordLockRound: icon {{ "voice_lock/input_round_s", historyToDownFg }};
 historyRecordLockRippleMargin: margins(6px, 6px, 6px, 6px);
-historyRecordWaveformBgRadius: 7px;
+historyRecordWaveformBgRadius: 8px;
 historyRecordWaveformOutsideAlpha: 0.6;
 historyRecordWaveformInactiveAlpha: 0.7;
 historyRecordCenterControlHeight: 18px;

@@ -62,7 +62,7 @@ walletCardAddressFont: font(9px semibold);
 walletCardAddressSkip: 13px;
 walletCardAddressRight: 14px;
 walletCardQrSize: size(46px, 36px);
-walletCardQrRadius: 10px;
+walletCardQrRadius: 12px;
 walletCardQrRight: 42px;
 walletCardQrTop: 72px;
 walletCardQrIcon: icon{{ "menu/qr_code", windowSubTextFg }};
@@ -363,7 +363,7 @@ walletDetailsAddressLabel: FlatLabel(defaultTableValue) {
 	}
 }
 walletDetailsCollectibleSize: 120px;
-walletDetailsCollectibleRadius: 10px;
+walletDetailsCollectibleRadius: 12px;
 walletDetailsCollectibleNameSkip: 20px;
 walletDetailsCollectionSkip: 4px;
 walletDetailsCollectionLabel: FlatLabel(defaultFlatLabel) {
@@ -592,7 +592,7 @@ walletImportPaste: RoundButton(defaultTableSmallButton) {
 walletImportPasteTop: 5px;
 walletAddressPlateFont: font(14px);
 walletAddressPlateInner: 10px;
-walletAddressPlateRadius: 10px;
+walletAddressPlateRadius: 12px;
 walletAddressPlateSkip: 14px;
 
 walletSendUserCardRadius: walletAddressPlateRadius;

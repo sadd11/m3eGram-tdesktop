@@ -996,7 +996,7 @@ inviteLinkTitleRight: FlatLabel(defaultSubsectionTitle) {
 	minWidth: 0px;
 }
 
-inviteLinkFieldRadius: 5px;
+inviteLinkFieldRadius: 4px;
 inviteLinkFieldHeight: 42px;
 inviteLinkFieldMargin: margins(14px, 12px, 36px, 9px);
 inviteLinkThreeDotsIcon: icon {{ "info/edit/dotsmini", dialogsMenuIconFg }};

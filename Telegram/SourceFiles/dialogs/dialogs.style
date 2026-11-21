@@ -180,7 +180,7 @@ forumDialogJumpArrowOver: icon{{ "dialogs/dialogs_topic_arrow", dialogsTextFgOve
 forumDialogJumpArrowSkip: 8px;
 forumDialogJumpArrowPosition: point(3px, 3px);
 forumDialogJumpPadding: margins(8px, 3px, 8px, 3px);
-forumDialogJumpRadius: 11px;
+forumDialogJumpRadius: 12px;
 
 dialogsOnlineBadgeStroke: 2px;
 dialogsOnlineBadgeSize: 10px;
@@ -491,11 +491,11 @@ dialogsSearchFromStyle: defaultTextStyle;
 dialogsScamPadding: margins(2px, 0px, 2px, 0px);
 dialogsScamFont: font(9px semibold);
 dialogsScamSkip: 4px;
-dialogsScamRadius: 2px;
+dialogsScamRadius: 4px;
 
 dialogsMiniPreviewTop: 1px;
 dialogsMiniPreview: 16px;
-dialogsMiniPreviewRadius: 2px;
+dialogsMiniPreviewRadius: 4px;
 dialogsMiniPreviewSkip: 2px;
 dialogsMiniPreviewRight: 3px;
 dialogsMiniPlay: icon{{ "dialogs/dialogs_mini_play", videoPlayIconFg }};
@@ -871,7 +871,7 @@ dialogsTopBarSuggestionShadow: BoxShadow {
 	opacity: 0.09;
 }
 dialogsRequestsBubbleIconSize: 26px;
-dialogsRequestsBubbleIconRadius: 6px;
+dialogsRequestsBubbleIconRadius: 8px;
 dialogsRequestsBubbleIconBg: dialogsBgActive;
 dialogsRequestsBubbleIcon: icon{{ "chat/filled_requests-20x20", dialogsNameFgActive }};
 dialogsSuggestionDeniedAuthLottie: size(70px, 70px);
@@ -935,7 +935,7 @@ dialogsUnconfirmedAuthButton: RoundButton(defaultBoxButton) {
 	width: -16px;
 	height: 26px;
 	textTop: 5px;
-	radius: 10px;
+	radius: 12px;
 	style: TextStyle(semiboldTextStyle) {
 		font: font(11px semibold);
 	}
