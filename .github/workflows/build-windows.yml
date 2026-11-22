@@ -24,10 +24,10 @@ jobs:
         with:
           fetch-depth: 1
           submodules: recursive
-      - name: Apply m3eGram lib_ui default palette (auth/intro screens)
+      - name: Apply m3eGram lib_ui MD3 patches (palette + shapes)
         shell: bash
         working-directory: Telegram/lib_ui
-        run: git apply --verbose "$GITHUB_WORKSPACE/patches/lib-ui-default-palette.patch"
+        run: git apply --verbose "$GITHUB_WORKSPACE/patches/lib-ui-md3.patch"
 
       # windows-2022: default toolset v143/14.44 matches cmake_helpers -T v143,
       # ~100GB on D: for Libraries (windows-2025-vs2026 lost D:\ and has ~33GB)
