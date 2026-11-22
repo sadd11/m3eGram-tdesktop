@@ -27,6 +27,7 @@ jobs:
           submodules: recursive
       - name: Apply m3eGram lib_ui default palette (auth/intro screens)
         shell: bash
+        working-directory: Telegram/lib_ui
         run: git apply --verbose "$GITHUB_WORKSPACE/patches/lib-ui-default-palette.patch"
 
       - name: Free disk space (~30 GB for the lib-building Docker image)
