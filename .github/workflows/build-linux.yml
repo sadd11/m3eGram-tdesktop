@@ -25,6 +25,9 @@ jobs:
         with:
           fetch-depth: 1
           submodules: recursive
+      - name: Apply m3eGram lib_ui default palette (auth/intro screens)
+        shell: bash
+        run: git apply --verbose "$GITHUB_WORKSPACE/patches/lib-ui-default-palette.patch"
 
       - name: Free disk space (~30 GB for the lib-building Docker image)
         uses: jlumbroso/free-disk-space@v1.3.1
