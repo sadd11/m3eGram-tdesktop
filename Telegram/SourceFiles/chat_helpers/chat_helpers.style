@@ -1652,7 +1652,7 @@ defaultChooseSendAs: ChooseSendAs {
 }
 defaultComposeControls: ComposeControls {
 	bg: historyComposeAreaBg;
-	radius: 0px;
+	radius: 12px;
 	padding: margins(historySendRight, historySendPadding, historySendRight, historySendPadding);
 
 	field: historyComposeField;
