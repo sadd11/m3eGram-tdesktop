@@ -52,6 +52,28 @@ namespace Notifications {
 namespace Default {
 namespace {
 
+// m3eGram (M3 Expressive): notification is a rounded card.
+[[nodiscard]] qreal NotificationRadius(QSize size) {
+	return std::min<qreal>(
+		st::notifyRadius,
+		std::min(size.width(), size.height()) / 2.);
+}
+
+void PaintNotificationFrame(QPainter &p, QSize size) {
+	const auto border = qreal(st::notifyBorderWidth);
+	const auto half = border / 2.;
+	const auto radius = NotificationRadius(size) - half;
+	auto hq = PainterHighQualityEnabler(p);
+	auto pen = QPen(st::notifyBorder->c);
+	pen.setWidthF(border);
+	p.setPen(pen);
+	p.setBrush(Qt::NoBrush);
+	p.drawRoundedRect(
+		QRectF(QPointF(), QSizeF(size)).adjusted(half, half, -half, -half),
+		radius,
+		radius);
+}
+
 [[nodiscard]] QPoint notificationStartPosition() {
 	const auto corner = Core::App().settings().notificationsCorner();
 	const auto r = NotificationDisplayRect(Core::App().activePrimaryWindow());
@@ -630,6 +652,12 @@ void Widget::addToHeight(int add) {
 void Widget::updateGeometry(int x, int y, int width, int height) {
 	move(x, y);
 	setFixedSize(width, height);
+	{
+		auto path = QPainterPath();
+		const auto radius = NotificationRadius({ width, height });
+		path.addRoundedRect(QRectF(0, 0, width, height), radius, radius);
+		setMask(QRegion(path.toFillPolygon().toPolygon()));
+	}
 	update();
 }
 
@@ -658,9 +686,11 @@ void Background::paintEvent(QPaintEvent *e) {
 	Painter p(this);
 
 	p.fillRect(rect(), st::notificationBg);
-	p.fillRect(0, 0, st::notifyBorderWidth, height(), st::notifyBorder);
-	p.fillRect(width() - st::notifyBorderWidth, 0, st::notifyBorderWidth, height(), st::notifyBorder);
-	p.fillRect(st::notifyBorderWidth, height() - st::notifyBorderWidth, width() - 2 * st::notifyBorderWidth, st::notifyBorderWidth, st::notifyBorder);
+	// The window frame is rounded: draw it through this child widget.
+	if (const auto parent = parentWidget()) {
+		p.translate(-pos());
+		PaintNotificationFrame(p, parent->size());
+	}
 }
 
 Notification::Notification(
@@ -916,10 +946,7 @@ void Notification::updateNotifyDisplay() {
 
 	{
 		Painter p(&img);
-		p.fillRect(0, 0, w - st::notifyBorderWidth, st::notifyBorderWidth, st::notifyBorder);
-		p.fillRect(w - st::notifyBorderWidth, 0, st::notifyBorderWidth, h - st::notifyBorderWidth, st::notifyBorder);
-		p.fillRect(st::notifyBorderWidth, h - st::notifyBorderWidth, w - st::notifyBorderWidth, st::notifyBorderWidth, st::notifyBorder);
-		p.fillRect(0, st::notifyBorderWidth, st::notifyBorderWidth, h - st::notifyBorderWidth, st::notifyBorder);
+		PaintNotificationFrame(p, QSize(w, h));
 
 		if (!options.hideNameAndPhoto) {
 			if (_fromScheduled && _history->peer->isSelf()) {
@@ -1364,10 +1391,7 @@ void HideAllButton::paintEvent(QPaintEvent *e) {
 	p.setClipRect(e->rect());
 
 	p.fillRect(rect(), _mouseOver ? st::lightButtonBgOver : st::lightButtonBg);
-	p.fillRect(0, 0, width(), st::notifyBorderWidth, st::notifyBorder);
-	p.fillRect(0, height() - st::notifyBorderWidth, width(), st::notifyBorderWidth, st::notifyBorder);
-	p.fillRect(0, st::notifyBorderWidth, st::notifyBorderWidth, height() - 2 * st::notifyBorderWidth, st::notifyBorder);
-	p.fillRect(width() - st::notifyBorderWidth, st::notifyBorderWidth, st::notifyBorderWidth, height() - 2 * st::notifyBorderWidth, st::notifyBorder);
+	PaintNotificationFrame(p, size());
 
 	p.setFont(st::defaultLinkButton.font);
 	p.setPen(_mouseOver ? st::lightButtonFgOver : st::lightButtonFg);

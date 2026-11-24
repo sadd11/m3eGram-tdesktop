@@ -113,6 +113,7 @@ void MediaPreviewWidget::paintEvent(QPaintEvent *e) {
 	const auto shown = _a_shown.value(_hiding ? 0. : 1.);
 	if (!_a_shown.animating()) {
 		if (_hiding) {
+			_backdrop = QPixmap();
 			hide();
 			_controller->disableGifPauseReason(
 				Window::GifPauseReason::MediaPreview);
@@ -131,8 +132,26 @@ void MediaPreviewWidget::paintEvent(QPaintEvent *e) {
 		const auto bg = _backgroundMargins.isNull()
 			? r
 			: (rect() - _backgroundMargins);
+		// m3eGram (M3 Expressive): frosted backdrop below the light dim.
+		const auto blurred = !_backdrop.isNull() && parentWidget();
+		if (blurred) {
+			const auto sx = _backdrop.width() / double(parentWidget()->width());
+			const auto sy = _backdrop.height() / double(parentWidget()->height());
+			auto hq = PainterHighQualityEnabler(p);
+			p.drawPixmap(
+				QRectF(bg),
+				_backdrop,
+				QRectF(
+					(pos().x() + bg.x()) * sx,
+					(pos().y() + bg.y()) * sy,
+					bg.width() * sx,
+					bg.height() * sy));
+			p.setOpacity(p.opacity() * 0.7);
+		}
 		p.fillRect(bg, st::stickerPreviewBg);
-	}
+		if (blurred) {
+			p.setOpacity(_a_shown.animating() ? shown : 1.);
+		}	}
 	if (!_customPadding.isNull()) {
 		p.translate(0, _customPadding.top());
 	}
@@ -238,6 +257,10 @@ void MediaPreviewWidget::startShow() {
 	_cache = QPixmap();
 	if (isHidden() || _a_shown.animating()) {
 		if (isHidden()) {
+			if (_paintBackground && parentWidget()) {
+				// Captured while this widget is still hidden.
+				_backdrop = Ui::BlurredWidgetBackdrop(parentWidget());
+			}
 			show();
 			_controller->enableGifPauseReason(
 				Window::GifPauseReason::MediaPreview);

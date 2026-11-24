@@ -1,3 +1,18 @@
+diff --git a/ui/basic.style b/ui/basic.style
+index 28095c2..530bbbb 100644
+--- a/ui/basic.style
++++ b/ui/basic.style
+@@ -104,8 +104,8 @@ linkCropLimit: 360px;
+ linkFont: normalFont;
+ linkFontOver: font(fsize underline);
+ 
+-roundRadiusLarge: 6px;
+-roundRadiusSmall: 3px;
++roundRadiusLarge: 16px;
++roundRadiusSmall: 8px;
+ 
+ dateRadius: roundRadiusLarge;
+ 
 diff --git a/ui/colors.palette b/ui/colors.palette
 index e2ba0d6..ab82ab1 100644
 --- a/ui/colors.palette
@@ -889,25 +904,109 @@ index e2ba0d6..ab82ab1 100644
  
  premiumButtonBg1: #55a5ff; // upgrade to premium button gradient 1
  premiumButtonBg2: #a767ff; // upgrade to premium button gradient 2
-
-diff --git a/ui/basic.style b/ui/basic.style
-index 28095c2..530bbbb 100644
---- a/ui/basic.style
-+++ b/ui/basic.style
-@@ -104,8 +104,8 @@ linkCropLimit: 360px;
- linkFont: normalFont;
- linkFontOver: font(fsize underline);
+diff --git a/ui/layers/layer_widget.cpp b/ui/layers/layer_widget.cpp
+index f8b1aa6..45010ba 100644
+--- a/ui/layers/layer_widget.cpp
++++ b/ui/layers/layer_widget.cpp
+@@ -39,6 +39,8 @@ public:
+ 		QPixmap &&layerCache);
+ 	void removeBodyCache();
+ 	[[nodiscard]] bool hasBodyCache() const;
++	void setBlurCache(QPixmap &&blurCache);
++	[[nodiscard]] bool hasBlurCache() const;
+ 	void refreshBodyCache(QPixmap &&bodyCache);
+ 	void startAnimation(Action action, crl::time duration = 0);
+ 	void skipAnimation(Action action, crl::time duration = 0);
+@@ -63,6 +65,7 @@ private:
+ 	void animationCallback();
  
--roundRadiusLarge: 6px;
--roundRadiusSmall: 3px;
-+roundRadiusLarge: 16px;
-+roundRadiusSmall: 8px;
+ 	QPixmap _bodyCache;
++	QPixmap _blurCache; // m3eGram: frosted backdrop below the dim.
+ 	QPixmap _mainMenuCache;
+ 	int _mainMenuCacheWidth = 0;
+ 	QPixmap _specialLayerCache;
+@@ -115,6 +118,14 @@ bool LayerStackWidget::BackgroundWidget::hasBodyCache() const {
+ 	return !_bodyCache.isNull();
+ }
  
- dateRadius: roundRadiusLarge;
++void LayerStackWidget::BackgroundWidget::setBlurCache(QPixmap &&blurCache) {
++	_blurCache = std::move(blurCache);
++}
++
++bool LayerStackWidget::BackgroundWidget::hasBlurCache() const {
++	return !_blurCache.isNull();
++}
++
+ void LayerStackWidget::BackgroundWidget::refreshBodyCache(
+ 		QPixmap &&bodyCache) {
+ 	_bodyCache = std::move(bodyCache);
+@@ -163,6 +174,9 @@ void LayerStackWidget::BackgroundWidget::checkIfDone() {
+ 	_wasAnimating = false;
+ 	_mainMenuCache = _specialLayerCache = _layerCache = QPixmap();
+ 	removeBodyCache();
++	if (!isShown()) {
++		_blurCache = QPixmap();
++	}
+ 	if (_doneCallback) {
+ 		_doneCallback();
+ 	}
+@@ -266,6 +280,17 @@ void LayerStackWidget::BackgroundWidget::paintEvent(QPaintEvent *e) {
+ 	p.setOpacity(bgOpacity);
+ 	auto overSpecialOpacity = (layerOpacity * specialLayerOpacity);
+ 	auto bg = myrtlrect(mainMenuRight, 0, width() - mainMenuRight, height());
++	const auto blurred = !_blurCache.isNull();
++	if (blurred) {
++		// m3eGram (M3 Expressive): frosted backdrop instead of a flat dim.
++		const auto sx = _blurCache.width() / double(width());
++		const auto sy = _blurCache.height() / double(height());
++		auto hq = PainterHighQualityEnabler(p);
++		p.drawPixmap(
++			QRectF(bg),
++			_blurCache,
++			QRectF(bg.x() * sx, bg.y() * sy, bg.width() * sx, bg.height() * sy));
++	}
  
-
+ 	if (_mainMenuCache.isNull() && mainMenuRight > 0) {
+ 		// All cache images are taken together with their shadows,
+@@ -308,7 +333,12 @@ void LayerStackWidget::BackgroundWidget::paintEvent(QPaintEvent *e) {
+ 		p.fillRect(specialLayerBox, st::layerBg);
+ 		p.setOpacity(bgOpacity);
+ 	} else {
++		if (blurred) {
++			// Blur already hides the content, so the dim is lighter.
++			p.setOpacity(bgOpacity * 0.55);
++		}
+ 		p.fillRect(bg, st::layerBg);
++		p.setOpacity(bgOpacity);
+ 	}
+ 
+ 	if (!_specialLayerCache.isNull() && specialLayerOpacity > 0) {
+@@ -574,6 +604,23 @@ void LayerStackWidget::setCacheImages() {
+ 		showChildren();
+ 		mainMenuCache = Ui::Shadow::grab(_mainMenu, st::boxRoundShadow, RectPart::Right);
+ 	}
++	if (layerShown() && !_background->hasBlurCache()) {
++		// m3eGram (M3 Expressive): frosted backdrop below boxes and menus.
++		if (!bodyCache.isNull()) {
++			_background->setBlurCache(Ui::BlurredBackdrop(bodyCache.toImage()));
++		} else if (const auto parent = parentWidget()) {
++			// Children are not toggled here: that would show the new layer
++			// before its animation. Instead the snapshot is taken only while
++			// no layer is visible, so the stack itself paints nothing yet.
++			const auto anyLayerVisible = (_specialLayer && _specialLayer->isVisible())
++				|| ranges::any_of(_layers, [](const auto &layer) {
++					return layer->isVisible();
++				});
++			if (!anyLayerVisible) {
++				_background->setBlurCache(Ui::BlurredWidgetBackdrop(parent));
++			}
++		}
++	}
+ 	setAttribute(Qt::WA_OpaquePaintEvent, !bodyCache.isNull());
+ 	updateLayerBoxes();
+ 	_background->setCacheImages(std::move(bodyCache), std::move(mainMenuCache), std::move(specialLayerCache), std::move(layerCache));
 diff --git a/ui/layers/layers.style b/ui/layers/layers.style
-index ebb7796..6b96bf6 100644
+index 433128b..d651014 100644
 --- a/ui/layers/layers.style
 +++ b/ui/layers/layers.style
 @@ -35,7 +35,7 @@ Box {
@@ -919,44 +1018,471 @@ index ebb7796..6b96bf6 100644
  
  boxButtonFont: font(boxFontSize semibold);
  defaultBoxButtonTextStyle: TextStyle(semiboldTextStyle) {
-
+diff --git a/ui/ui_utility.cpp b/ui/ui_utility.cpp
+index b067d4d..f2b7bc4 100644
+--- a/ui/ui_utility.cpp
++++ b/ui/ui_utility.cpp
+@@ -9,6 +9,8 @@
+ #include "base/platform/base_platform_info.h"
+ #include "ui/integration.h"
+ #include "ui/style/style_core.h"
++#include "ui/image/image_prepare.h"
++#include "styles/palette.h"
+ 
+ #include <QtWidgets/QApplication>
+ #include <QtGui/QWindow>
+@@ -149,6 +151,33 @@ QImage GrabWidgetToImage(not_null<QWidget*> target, QRect rect, QColor bg) {
+ 	return result;
+ }
+ 
++QPixmap BlurredBackdrop(QImage image, int downscale, int radius) {
++	if (image.isNull()) {
++		return QPixmap();
++	}
++	downscale = std::max(downscale, 1);
++	auto small = image.scaled(
++		QSize(
++			std::max(image.width() / downscale, 1),
++			std::max(image.height() / downscale, 1)),
++		Qt::IgnoreAspectRatio,
++		Qt::SmoothTransformation);
++	small.setDevicePixelRatio(1.);
++	return QPixmap::fromImage(
++		Images::BlurLargeImage(std::move(small), radius));
++}
++
++QPixmap BlurredWidgetBackdrop(
++		not_null<QWidget*> target,
++		QRect rect,
++		int downscale,
++		int radius) {
++	return BlurredBackdrop(
++		GrabWidgetToImage(target, rect, st::windowBg->c),
++		downscale,
++		radius);
++}
++
+ QPixmap GrabOpaque(not_null<QWidget*> target, QRect rect, QColor bg) {
+ 	SendPendingMoveResizeEvents(target);
+ 	if (rect.isNull()) {
+diff --git a/ui/ui_utility.h b/ui/ui_utility.h
+index b21d5c1..cea2aee 100644
+--- a/ui/ui_utility.h
++++ b/ui/ui_utility.h
+@@ -76,6 +76,19 @@ void SendPendingMoveResizeEvents(not_null<QWidget*> target);
+ 	QRect rect = QRect(),
+ 	QColor bg = QColor(255, 255, 255, 0));
+ 
++// m3eGram (M3 Expressive): frosted-glass backdrop instead of a flat
++// semi-transparent fill. The image is downscaled and blurred, so draw it
++// stretched to the target size (with smooth pixmap transform).
++[[nodiscard]] QPixmap BlurredBackdrop(
++	QImage image,
++	int downscale = 4,
++	int radius = 6);
++[[nodiscard]] QPixmap BlurredWidgetBackdrop(
++	not_null<QWidget*> target,
++	QRect rect = QRect(),
++	int downscale = 4,
++	int radius = 6);
++
+ [[nodiscard]] QPixmap GrabOpaque(
+ 	not_null<QWidget*> target,
+ 	QRect rect,
+diff --git a/ui/widgets/buttons.cpp b/ui/widgets/buttons.cpp
+index bac6449..e4da937 100644
+--- a/ui/widgets/buttons.cpp
++++ b/ui/widgets/buttons.cpp
+@@ -1006,7 +1006,37 @@ void SettingsButton::paintEvent(QPaintEvent *e) {
+ }
+ 
+ void SettingsButton::paintBg(Painter &p, const QRect &rect, bool over) const {
+-	p.fillRect(rect, over ? _st.textBgOver : _st.textBg);
++	p.fillRect(rect, _st.textBg);
++	if (!over) {
++		return;
++	}
++	// m3eGram (M3 Expressive): hovered row is a rounded "pill".
++	const auto skip = st::settingsButtonPillSkip;
++	const auto radius = st::settingsButtonPillRadius;
++	auto hq = PainterHighQualityEnabler(p);
++	p.setPen(Qt::NoPen);
++	p.setBrush(_st.textBgOver);
++	p.drawRoundedRect(
++		QRect(
++			skip.x(),
++			skip.y(),
++			width() - 2 * skip.x(),
++			height() - 2 * skip.y()),
++		radius,
++		radius);
++}
++
++QImage SettingsButton::prepareRippleMask() const {
++	const auto skip = st::settingsButtonPillSkip;
++	const auto radius = st::settingsButtonPillRadius;
++	const auto rect = QRect(
++		skip.x(),
++		skip.y(),
++		width() - 2 * skip.x(),
++		height() - 2 * skip.y());
++	return RippleAnimation::MaskByDrawer(size(), false, [&](QPainter &p) {
++		p.drawRoundedRect(rect, radius, radius);
++	});
+ }
+ 
+ void SettingsButton::paintText(Painter &p, bool over, int outerw) const {
+diff --git a/ui/widgets/buttons.h b/ui/widgets/buttons.h
+index ce40933..a5382e0 100644
+--- a/ui/widgets/buttons.h
++++ b/ui/widgets/buttons.h
+@@ -349,6 +349,7 @@ protected:
+ 		StateChangeSource source) override;
+ 
+ 	void paintEvent(QPaintEvent *e) override;
++	QImage prepareRippleMask() const override;
+ 
+ 	void paintBg(Painter &p, const QRect &rect, bool over) const;
+ 	void paintText(Painter &p, bool over, int outerw) const;
+diff --git a/ui/widgets/checkbox.cpp b/ui/widgets/checkbox.cpp
+index df0dc58..de88ad0 100644
+--- a/ui/widgets/checkbox.cpp
++++ b/ui/widgets/checkbox.cpp
+@@ -84,6 +84,53 @@ void ToggleView::setStyle(const style::Toggle &st) {
+ }
+ 
+ void ToggleView::paint(QPainter &p, int left, int top, int outerWidth) {
++	if (!_locked && _st->xsize <= 0) {
++		// m3eGram (M3 Expressive) switch: pill track + thumb that grows
++		// when toggled on, outline is visible only in the "off" state.
++		PainterHighQualityEnabler hq(p);
++		const auto toggled = currentAnimationValue();
++		const auto size = getSize();
++		const auto w = float64(size.width());
++		const auto h = float64(size.height());
++		const auto track = QRectF(style::rtlrect(
++			left,
++			top,
++			size.width(),
++			size.height(),
++			outerWidth));
++		const auto radius = h / 2.;
++
++		p.setPen(Qt::NoPen);
++		p.setBrush(anim::brush(_st->untoggledBg, _st->toggledFg, toggled));
++		p.drawRoundedRect(track, radius, radius);
++
++		if (toggled < 1.) {
++			const auto outline = std::max(1., h / 16.);
++			auto color = _st->untoggledFg->c;
++			color.setAlphaF(color.alphaF() * (1. - toggled));
++			auto pen = QPen(color);
++			pen.setWidthF(outline);
++			p.setPen(pen);
++			p.setBrush(Qt::NoBrush);
++			const auto half = outline / 2.;
++			p.drawRoundedRect(
++				track.adjusted(half, half, -half, -half),
++				radius - half,
++				radius - half);
++		}
++
++		const auto thumbOff = h * 0.5;
++		const auto thumbOn = h * 0.75;
++		const auto thumb = thumbOff + (thumbOn - thumbOff) * toggled;
++		const auto centerX = (h / 2.) + (w - h) * toggled;
++		const auto center = style::rtlpoint(
++			QPointF(left + centerX, top + h / 2.),
++			outerWidth);
++		p.setPen(Qt::NoPen);
++		p.setBrush(anim::brush(_st->untoggledFg, _st->toggledBg, toggled));
++		p.drawEllipse(center, thumb / 2., thumb / 2.);
++		return;
++	}
+ 	left += _st->border;
+ 	top += _st->border;
+ 
+diff --git a/ui/widgets/fields/input_field.cpp b/ui/widgets/fields/input_field.cpp
+index 10e12f3..7ecca2d 100644
+--- a/ui/widgets/fields/input_field.cpp
++++ b/ui/widgets/fields/input_field.cpp
+@@ -2986,7 +2986,21 @@ void InputField::paintFlatSurrounding(
+ 		if (borderTo > borderFrom) {
+ 			auto borderFg = anim::brush(_st.borderFgActive, _st.borderFgError, errorDegree);
+ 			p.setOpacity(borderOpacity);
+-			p.fillRect(borderFrom, height() - _st.borderActive, borderTo - borderFrom, _st.borderActive, borderFg);
++			// m3eGram (M3 Expressive): active indicator with rounded ends.
++			{
++				PainterHighQualityEnabler hq(p);
++				p.setPen(Qt::NoPen);
++				p.setBrush(borderFg);
++				const auto indicatorRadius = _st.borderActive / 2.;
++				p.drawRoundedRect(
++					QRectF(
++						borderFrom,
++						height() - _st.borderActive,
++						borderTo - borderFrom,
++						_st.borderActive),
++					indicatorRadius,
++					indicatorRadius);
++			}
+ 			p.setOpacity(1);
+ 		}
+ 	}
+diff --git a/ui/widgets/menu/menu_action.cpp b/ui/widgets/menu/menu_action.cpp
+index 4c16b67..bca26de 100644
+--- a/ui/widgets/menu/menu_action.cpp
++++ b/ui/widgets/menu/menu_action.cpp
+@@ -96,12 +96,24 @@ void Action::paintEvent(QPaintEvent *e) {
+ }
+ 
+ void Action::paintBackground(QPainter &p, bool selected) {
+-	if (selected && _st.itemBgOver->c.alpha() < 255) {
+-		p.fillRect(0, 0, width(), _height, _st.itemBg);
++	p.fillRect(QRect(0, 0, width(), _height), _st.itemBg);
++	if (!selected) {
++		return;
+ 	}
+-	p.fillRect(
+-		QRect(0, 0, width(), _height),
+-		selected ? _st.itemBgOver : _st.itemBg);
++	// m3eGram (M3 Expressive): selected item is a rounded "pill".
++	const auto skip = st::menuItemPillSkip;
++	const auto radius = st::menuItemPillRadius;
++	auto hq = PainterHighQualityEnabler(p);
++	p.setPen(Qt::NoPen);
++	p.setBrush(_st.itemBgOver);
++	p.drawRoundedRect(
++		QRect(
++			skip.x(),
++			skip.y(),
++			width() - 2 * skip.x(),
++			_height - 2 * skip.y()),
++		radius,
++		radius);
+ }
+ 
+ void Action::paintText(Painter &p) {
+@@ -212,7 +224,16 @@ QPoint Action::prepareRippleStartPosition() const {
+ }
+ 
+ QImage Action::prepareRippleMask() const {
+-	return Ui::RippleAnimation::RectMask(size());
++	const auto skip = st::menuItemPillSkip;
++	const auto radius = st::menuItemPillRadius;
++	const auto rect = QRect(
++		skip.x(),
++		skip.y(),
++		width() - 2 * skip.x(),
++		_height - 2 * skip.y());
++	return Ui::RippleAnimation::MaskByDrawer(size(), false, [&](QPainter &p) {
++		p.drawRoundedRect(rect, radius, radius);
++	});
+ }
+ 
+ int Action::contentHeight() const {
+diff --git a/ui/widgets/menu/menu_multiline_action.cpp b/ui/widgets/menu/menu_multiline_action.cpp
+index db27772..d62f5d3 100644
+--- a/ui/widgets/menu/menu_multiline_action.cpp
++++ b/ui/widgets/menu/menu_multiline_action.cpp
+@@ -82,7 +82,18 @@ int MultilineAction::contentHeight() const {
+ void MultilineAction::paintEvent(QPaintEvent *e) {
+ 	auto p = QPainter(this);
+ 	const auto selected = isSelected();
+-	p.fillRect(rect(), selected ? _st.itemBgOver : _st.itemBg);
++	p.fillRect(rect(), _st.itemBg);
++	if (selected) {
++		// m3eGram (M3 Expressive): selected item is a rounded "pill".
++		const auto skip = st::menuItemPillSkip;
++		auto hq = PainterHighQualityEnabler(p);
++		p.setPen(Qt::NoPen);
++		p.setBrush(_st.itemBgOver);
++		p.drawRoundedRect(
++			rect().marginsRemoved(QMargins(skip.x(), skip.y(), skip.x(), skip.y())),
++			st::menuItemPillRadius,
++			st::menuItemPillRadius);
++	}
+ 	RippleButton::paintRipple(p, 0, 0);
+ 	if (const auto icon = (selected ? _iconOver : _icon)) {
+ 		icon->paint(p, _st.itemIconPosition, width());
+diff --git a/ui/widgets/side_bar_button.cpp b/ui/widgets/side_bar_button.cpp
+index 141fe0e..978a552 100644
+--- a/ui/widgets/side_bar_button.cpp
++++ b/ui/widgets/side_bar_button.cpp
+@@ -175,9 +175,26 @@ void SideBarButton::paintEvent(QPaintEvent *e) {
+ 	const auto clip = e->rect();
+ 
+ 	const auto &bg = _active ? _st.textBgActive : _st.textBg;
+-	p.fillRect(clip, bg);
+-
+-	RippleButton::paintRipple(p, 0, 0);
++	// m3eGram (M3 Expressive): the sidebar is always filled with the plain
++	// background, the active item is a rounded "pill" drawn on top of it.
++	p.fillRect(clip, _st.textBg);
++	const auto pillRect = QRectF(rect()).marginsRemoved(
++		QMarginsF(4., 2., 4., 2.));
++	const auto pillRadius = 16.;
++	if (_active) {
++		auto hq = PainterHighQualityEnabler(p);
++		p.setPen(Qt::NoPen);
++		p.setBrush(bg);
++		p.drawRoundedRect(pillRect, pillRadius, pillRadius);
++	}
++	{
++		p.save();
++		auto pillPath = QPainterPath();
++		pillPath.addRoundedRect(pillRect, pillRadius, pillRadius);
++		p.setClipPath(pillPath, Qt::IntersectClip);
++		RippleButton::paintRipple(p, 0, 0);
++		p.restore();
++	}
+ 
+ 	if (_lock.locked) {
+ 		p.setOpacity(kPremiumLockedOpacity);
 diff --git a/ui/widgets/widgets.style b/ui/widgets/widgets.style
-index 8b8df7d..1fb860f 100644
+index 078cd86..80eb389 100644
 --- a/ui/widgets/widgets.style
 +++ b/ui/widgets/widgets.style
-@@ -713,7 +713,7 @@ defaultRippleAnimationBgOver: RippleAnimation(defaultRippleAnimation) {
+@@ -714,7 +714,14 @@ defaultRippleAnimationBgOver: RippleAnimation(defaultRippleAnimation) {
  	color: windowBgOver;
  }
  
 -buttonRadius: 4px;
 +buttonRadius: 20px;
++
++// m3eGram (M3 Expressive): rounded menu-item "pill" (hover / selected).
++menuItemPillRadius: 12px;
++menuItemPillSkip: point(8px, 1px);
++// m3eGram (M3 Expressive): hovered settings row is a rounded "pill".
++settingsButtonPillRadius: 16px;
++settingsButtonPillSkip: point(8px, 1px);
  
  defaultActiveButton: RoundButton {
  	textFg: activeButtonFg;
-
-diff --git a/ui/widgets/side_bar_button.cpp b/ui/widgets/side_bar_button.cpp
-index 7633972..7e98029 100644
---- a/ui/widgets/side_bar_button.cpp
-+++ b/ui/widgets/side_bar_button.cpp
-@@ -167,7 +167,20 @@ void SideBarButton::paintEvent(QPaintEvent *e) {
- 	const auto clip = e->rect();
+@@ -798,7 +805,7 @@ defaultTable: Table {
+ 	headerBg: windowBgOver;
+ 	borderFg: inputBorderFg;
+ 	border: 1px;
+-	radius: 6px;
++	radius: 12px;
+ 	labelMaxWidth: 0.5;
+ 	smallButton: defaultTableSmallButton;
+ 	defaultLabel: defaultTableLabel;
+@@ -860,16 +867,18 @@ defaultRadio: Radio {
+ 	duration: universalDuration;
+ 	rippleAreaPadding: 8px;
+ }
++// m3eGram (M3 Expressive) switch, 52x32: toggledFg = track (on), untoggledBg = track (off),
++// toggledBg = thumb (on), untoggledFg = thumb + outline (off).
+ defaultToggle: Toggle {
+-	toggledBg: windowBg;
++	toggledBg: windowFgActive;
+ 	toggledFg: windowBgActive;
+-	untoggledBg: windowBg;
++	untoggledBg: sliderBgInactive;
+ 	untoggledFg: checkboxFg;
+ 	duration: universalDuration;
+ 	border: 2px;
+ 	shift: 1px;
+-	diameter: 16px;
+-	width: 14px;
++	diameter: 28px;
++	width: 20px;
+ 	xsize: 0px;
+ 	vsize: 0px;
+ 	vshift: 0px;
+@@ -946,9 +955,13 @@ defaultPanelAnimation: PanelAnimation {
+ defaultMenuArrow: icon {{ "menu/submenu_arrow", windowBoldFg }};
+ defaultMenuToggle: Toggle(defaultToggle) {
+ 	untoggledFg: menuIconFg;
++	diameter: 20px;
++	width: 14px;
+ }
+ defaultMenuToggleOver: Toggle(defaultToggle) {
+ 	untoggledFg: menuIconFgOver;
++	diameter: 20px;
++	width: 14px;
+ }
+ defaultMenuSeparator: MenuSeparator {
+ 	padding: margins(0px, 5px, 0px, 5px);
+@@ -993,7 +1006,7 @@ defaultPopupMenu: PopupMenu {
  
- 	const auto &bg = _active ? _st.textBgActive : _st.textBg;
--	p.fillRect(clip, bg);
-+	// M3 NavigationBar: active state = pill-shaped indicator behind the icon
-+	// (the label stays outside the pill, like the bottom navigation bar).
-+	if (_active && _showIcon) {
-+		auto hq = PainterHighQualityEnabler(p);
-+		p.setPen(Qt::NoPen);
-+		p.setBrush(bg);
-+		const auto pillHeight = _st.minHeight;
-+		const auto pillWidth = width() - 2 * (width() - pillHeight) / 4;
-+		const auto x = (width() - pillWidth) / 2;
-+		const auto r = pillHeight / 2;
-+		p.drawRoundedRect(QRect(x, 0, pillWidth, pillHeight), r, r);
-+	} else {
-+		p.fillRect(clip, bg);
-+	}
+ 	menu: defaultMenu;
  
- 	RippleButton::paintRipple(p, 0, 0);
+-	radius: 8px;
++	radius: 20px;
+ 	duration: 150;
+ 	showDuration: 200;
+ }
+@@ -1049,7 +1062,7 @@ defaultInputField: InputField {
+ 	borderFgError: activeLineFgError;
  
+ 	border: 1px;
+-	borderActive: 2px;
++	borderActive: 3px;
+ 	borderRadius: 0px;
+ 	borderDenominator: 1;
+ 
+@@ -1180,7 +1193,7 @@ defaultSettingsSlider: SettingsSlider {
+ 	barTop: 5px;
+ 	barSkip: 3px;
+ 	barStroke: 3px;
+-	barRadius: 1px;
++	barRadius: 2px;
+ 	barFg: sliderBgInactive;
+ 	barFgActive: sliderBgActive;
+ 	labelTop: 17px;
+@@ -1209,7 +1222,7 @@ defaultTabsSlider: SettingsSlider(defaultSettingsSlider) {
+ }
+ 
+ defaultContinuousSlider: MediaSlider {
+-	width: 3px;
++	width: 4px;
+ 	activeFg: mediaPlayerActiveFg;
+ 	inactiveFg: mediaPlayerInactiveFg;
+ 	activeFgOver: mediaPlayerActiveFg;
+@@ -1217,7 +1230,7 @@ defaultContinuousSlider: MediaSlider {
+ 	activeFgDisabled: mediaPlayerInactiveFg;
+ 	inactiveFgDisabled: windowBg;
+ 	receivedTillFg: mediaPlayerInactiveFg;
+-	seekSize: size(9px, 9px);
++	seekSize: size(12px, 12px);
+ 	duration: 150;
+ 	borderFg: transparent;
+ 	borderWidth: 0px;
+@@ -1253,7 +1266,7 @@ defaultPeerListCheckbox: RoundImageCheckbox {
+ 	check: defaultPeerListCheck;
+ }
+ 
+-innerDropdownRadius: 8px;
++innerDropdownRadius: 16px;
+ defaultInnerDropdown: InnerDropdown {
+ 	padding: margins(10px, 10px, 10px, 10px);
+ 	shadow: roundShadowRadius8px;
+@@ -1292,7 +1305,7 @@ defaultImportantTooltip: ImportantTooltip {
+ 	bg: importantTooltipBg;
+ 	margin: margins(4px, 4px, 4px, 4px);
+ 	padding: margins(10px, 3px, 10px, 5px);
+-	radius: 4px;
++	radius: 12px;
+ 	arrow: 4px;
+ 	arrowSkipMin: 24px;
+ 	arrowSkip: 66px;
+@@ -1554,7 +1567,7 @@ defaultToast: Toast {
+ 	padding: margins(19px, 13px, 19px, 12px);
+ 	margin: margins(13px, 13px, 13px, 13px);
+ 	maxWidth: 480px;
+-	radius: 8px;
++	radius: 16px;
+ 	durationFadeIn: 200;
+ 	durationFadeOut: 1000;
+ 	durationSlide: 160;
+@@ -1708,7 +1721,7 @@ menuAttention: Menu(defaultMenu) {
+ 	itemFgOver: attentionButtonFgOver;
+ }
+ popupMenuWithIcons: PopupMenu(defaultPopupMenu) {
+-	scrollPadding: margins(0px, 5px, 0px, 5px);
++	scrollPadding: margins(0px, 8px, 0px, 8px);
+ 	menu: menuWithIcons;
+ }
+ dropdownMenuWithIcons: DropdownMenu(defaultDropdownMenu) {

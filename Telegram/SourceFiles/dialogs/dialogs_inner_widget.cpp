@@ -1914,15 +1914,30 @@ void InnerWidget::paintPeerSearchResult(
 		not_null<const PeerSearchResult*> result,
 		const Ui::PaintContext &context) {
 	QRect fullRect(0, 0, context.width, st::dialogsRowHeight);
-	p.fillRect(
-		fullRect,
-		(context.active
+	p.fillRect(fullRect, currentBg());
+	// m3eGram (M3 Expressive): rounded "pill" for active / hovered rows.
+	const auto pillSkip = st::dialogsRowPillSkip;
+	const auto pillRect = fullRect.marginsRemoved(QMargins(
+		pillSkip.x(),
+		pillSkip.y(),
+		pillSkip.x(),
+		pillSkip.y()));
+	const auto pillRadius = st::dialogsRowPillRadius;
+	if (context.active || context.selected) {
+		auto hq = PainterHighQualityEnabler(p);
+		p.setPen(Qt::NoPen);
+		p.setBrush(context.active
 			? st::dialogsBgActive
-			: context.selected
-			? st::dialogsBgOver
-			: currentBg()));
+			: st::dialogsBgOver);
+		p.drawRoundedRect(pillRect, pillRadius, pillRadius);
+	}
 	if (!context.active) {
+		p.save();
+		auto clip = QPainterPath();
+		clip.addRoundedRect(QRectF(pillRect), pillRadius, pillRadius);
+		p.setClipPath(clip, Qt::IntersectClip);
 		result->row.paintRipple(p, 0, 0, context.width);
+		p.restore();
 	}
 
 	auto peer = result->peer;

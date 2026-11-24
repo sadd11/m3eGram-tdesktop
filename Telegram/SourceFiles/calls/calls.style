@@ -129,7 +129,7 @@ callAnswer: CallButton {
 	bgSize: 44px;
 	bgPosition: point(12px, 12px);
 	angle: 135.;
-	outerRadius: 12px;
+	outerRadius: 16px;
 	outerBg: callAnswerBgOuter;
 	label: callButtonLabel;
 }
@@ -488,7 +488,7 @@ callRateEndedIcon: icon {{ "calls/call_ended", callNameFg }};
 callRateEndedSkip: 4px;
 callRateCloseWidth: 358px;
 callRateCloseHeight: 52px;
-callRateCloseRadius: 8px;
+callRateCloseRadius: 12px;
 callRateCloseSkip: 24px;
 callRateCloseFont: font(18px semibold);
 callRateCloseRipple: RippleAnimation(defaultRippleAnimation) {
@@ -1108,7 +1108,7 @@ groupCallButtonSkipSmall: 5px;
 groupCallButtonBottomSkip: 113px;
 groupCallButtonBottomSkipWide: 108px;
 groupCallControlsBackMargin: margins(10px, 0px, 10px, 0px);
-groupCallControlsBackRadius: 12px;
+groupCallControlsBackRadius: 20px;
 groupCallMuteBottomSkip: 116px;
 
 groupCallMembersMargin: margins(16px, 16px, 16px, 60px);
@@ -1566,7 +1566,7 @@ groupCallTooltip: Tooltip(defaultTooltip) {
 groupCallNiceTooltip: ImportantTooltip(defaultImportantTooltip) {
 	bg: importantTooltipBg;
 	padding: margins(10px, 3px, 10px, 5px);
-	radius: 4px;
+	radius: 8px;
 	arrow: 4px;
 }
 groupCallNiceTooltipLabel: defaultImportantTooltipLabel;

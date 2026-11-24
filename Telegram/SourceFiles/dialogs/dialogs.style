@@ -89,6 +89,9 @@ dialogsDateFont: font(13px);
 dialogsDateSkip: 5px;
 
 dialogsRowHeight: 62px;
+// m3eGram (M3 Expressive): active / hovered chat is a rounded "pill".
+dialogsRowPillRadius: 20px;
+dialogsRowPillSkip: point(4px, 2px);
 dialogsFilterPadding: point(7px, 7px);
 dialogsFilterSkip: 4px;
 
@@ -180,7 +183,7 @@ forumDialogJumpArrowOver: icon{{ "dialogs/dialogs_topic_arrow", dialogsTextFgOve
 forumDialogJumpArrowSkip: 8px;
 forumDialogJumpArrowPosition: point(3px, 3px);
 forumDialogJumpPadding: margins(8px, 3px, 8px, 3px);
-forumDialogJumpRadius: 12px;
+forumDialogJumpRadius: 16px;
 
 dialogsOnlineBadgeStroke: 2px;
 dialogsOnlineBadgeSize: 10px;
@@ -480,8 +483,8 @@ dialogsSearchInDownTop: 15px;
 dialogsSearchInDown: icon {{ "intro_country_dropdown", windowBoldFg }};
 dialogsSearchInDownSkip: 4px;
 dialogsSearchInMenu: PopupMenu(defaultPopupMenu) {
-	scrollPadding: margins(0px, 0px, 0px, 0px);
-	radius: 8px;
+	scrollPadding: margins(0px, 8px, 0px, 8px);
+	radius: 20px;
 	menu: menuWithIcons;
 }
 dialogsSearchInCheck: icon {{ "player/player_check", mediaPlayerActiveFg }};
@@ -495,7 +498,7 @@ dialogsScamRadius: 4px;
 
 dialogsMiniPreviewTop: 1px;
 dialogsMiniPreview: 16px;
-dialogsMiniPreviewRadius: 4px;
+dialogsMiniPreviewRadius: 6px;
 dialogsMiniPreviewSkip: 2px;
 dialogsMiniPreviewRight: 3px;
 dialogsMiniPlay: icon{{ "dialogs/dialogs_mini_play", videoPlayIconFg }};
@@ -714,7 +717,7 @@ topPeers: DialogsStories(dialogsStoriesFull) {
 	photoTop: 8px;
 	nameLeft: 6px;
 }
-topPeersRadius: 4px;
+topPeersRadius: 12px;
 topPeersMargin: margins(3px, 3px, 3px, 4px);
 
 recentPeersEmptySize: 100px;
@@ -764,17 +767,19 @@ dialogsTabsScroll: ScrollArea(defaultScrollArea) {
 dialogsSearchTabs: SettingsSlider(defaultSettingsSlider) {
 	padding: 9px;
 	height: 33px;
-	barTop: 30px;
+	// m3eGram (M3 Expressive): active tab is a tonal pill behind the label.
+	barTop: 4px;
 	barSkip: 0px;
-	barStroke: 6px;
-	barRadius: 2px;
+	barStroke: 24px;
+	barRadius: 12px;
 	barFg: transparent;
+	barFgActive: dialogsBgActive;
 	barSnapToLabel: true;
-	strictSkip: 18px;
+	strictSkip: 24px;
 	labelTop: 7px;
 	labelStyle: semiboldTextStyle;
 	labelFg: windowSubTextFg;
-	labelFgActive: lightButtonFg;
+	labelFgActive: dialogsNameFgActive;
 	rippleBottomSkip: 1px;
 	rippleBg: windowBgOver;
 	rippleBgActive: lightButtonBgOver;
@@ -871,7 +876,7 @@ dialogsTopBarSuggestionShadow: BoxShadow {
 	opacity: 0.09;
 }
 dialogsRequestsBubbleIconSize: 26px;
-dialogsRequestsBubbleIconRadius: 8px;
+dialogsRequestsBubbleIconRadius: 12px;
 dialogsRequestsBubbleIconBg: dialogsBgActive;
 dialogsRequestsBubbleIcon: icon{{ "chat/filled_requests-20x20", dialogsNameFgActive }};
 dialogsSuggestionDeniedAuthLottie: size(70px, 70px);
@@ -935,7 +940,7 @@ dialogsUnconfirmedAuthButton: RoundButton(defaultBoxButton) {
 	width: -16px;
 	height: 26px;
 	textTop: 5px;
-	radius: 12px;
+	radius: 20px;
 	style: TextStyle(semiboldTextStyle) {
 		font: font(11px semibold);
 	}

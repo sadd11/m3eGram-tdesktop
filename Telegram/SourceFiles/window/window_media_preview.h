@@ -95,6 +95,7 @@ private:
 	};
 	mutable CacheStatus _cacheStatus = CacheNotLoaded;
 	mutable QPixmap _cache;
+	QPixmap _backdrop; // m3eGram: blurred window behind the preview.
 	mutable QSize _cachedSize;
 	QMargins _customPadding;
 	QMargins _backgroundMargins;

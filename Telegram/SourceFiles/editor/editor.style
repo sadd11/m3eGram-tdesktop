@@ -143,7 +143,7 @@ photoEditorMenuCheckLabel: FlatLabel(defaultFlatLabel) {
 	textFg: groupCallMembersFg;
 }
 photoEditorShapeFillDuration: 160;
-photoEditorShapeFillRadius: 13px;
+photoEditorShapeFillRadius: 16px;
 photoEditorAlignIconSize: 24px;
 photoEditorMenuRoundCheckUntoggledFg: groupCallMemberNotJoinedStatus;
 photoEditorMenuRoundCheck: RoundCheckbox(defaultRoundCheckbox) {
@@ -294,7 +294,7 @@ videoTimelineDotSize: 5px;
 videoTimelineDotActiveSize: 9px;
 videoTimelineDotSkip: 2px;
 videoTimelineDotFg: callAnswerBg;
-videoTimelineRadius: 6px;
+videoTimelineRadius: 12px;
 videoTimelineHandleWidth: 11px;
 videoTimelineHandleMinWidth: 4px;
 videoTimelineHandleGripWidth: 2px;
@@ -317,7 +317,7 @@ videoTimelineOverviewFg: windowBgActive;
 videoTimelineHintSkip: 4px;
 videoTimelineHintWidth: 18px;
 videoTimelineHintHeight: 20px;
-videoTimelineHintRadius: 6px;
+videoTimelineHintRadius: 12px;
 videoTimelineHintStroke: 2px;
 videoTimelineHintArrowWidth: 5px;
 videoTimelineHintArrowHeight: 10px;

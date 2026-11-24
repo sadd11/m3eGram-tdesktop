@@ -248,6 +248,33 @@ void ChatsFiltersTabs::paintEvent(QPaintEvent *e) {
 	auto index = 0;
 	auto raisedIndex = -1;
 	auto activeHorizontalShift = 0;
+	// m3eGram (M3 Expressive): the active bar is a pill behind the label,
+	// so it is painted before the labels.
+	if (_st.barSnapToLabel) {
+		const auto drawRect = [&](QRect rect, bool active) {
+			const auto &bar = active ? _barActive : _bar;
+			if (bar) {
+				bar->paint(p, rect);
+			} else {
+				p.fillRect(rect, active ? _st.barFgActive : _st.barFg);
+			}
+		};
+		const auto shift = (activeIndex >= 0 && activeIndex < int(_sections.size()))
+			? _sections[activeIndex].horizontalShift
+			: 0;
+		const auto add = _st.barStroke / 2;
+		const auto from = std::max(range.left - add, 0);
+		const auto till = std::min(range.left + range.width + add, width());
+		if (from < till) {
+			drawRect(
+				myrtlrect(
+					from,
+					_st.barTop,
+					till - from,
+					_st.barStroke).translated(shift, 0),
+				true);
+		}
+	}
 	const auto drawSection = [&](Section &section) {
 		// const auto activeWidth = _st.barSnapToLabel
 		// 	? section.contentWidth
@@ -350,28 +377,6 @@ void ChatsFiltersTabs::paintEvent(QPaintEvent *e) {
 	if (raisedIndex >= 0) {
 		index = raisedIndex;
 		drawSection(*_sections[raisedIndex].section);
-	}
-	if (_st.barSnapToLabel) {
-		const auto drawRect = [&](QRect rect, bool active) {
-			const auto &bar = active ? _barActive : _bar;
-			if (bar) {
-				bar->paint(p, rect);
-			} else {
-				p.fillRect(rect, active ? _st.barFgActive : _st.barFg);
-			}
-		};
-		const auto add = _st.barStroke / 2;
-		const auto from = std::max(range.left - add, 0);
-		const auto till = std::min(range.left + range.width + add, width());
-		if (from < till) {
-			drawRect(
-				myrtlrect(
-					from,
-					_st.barTop,
-					till - from,
-					_st.barStroke).translated(activeHorizontalShift, 0),
-				true);
-		}
 	}
 }
 

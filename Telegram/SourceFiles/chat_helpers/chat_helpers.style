@@ -492,7 +492,7 @@ stickersAddCellPlusSize: 22px;
 stickersAddCellPlusThickness: 2px;
 stickersAddCellBgRadius: 28px;
 emojiSetAddCellPlusSize: 13px;
-emojiSetAddCellBgRadius: 16px;
+emojiSetAddCellBgRadius: 20px;
 stickersAddPanelSkip: 8px;
 
 stickersEmojiPickerSelectedBg: windowBgActive;
@@ -638,7 +638,7 @@ stickerPreviewMin: 0.1;
 stickerPanFirstAfterShortcutsSkip: 4px;
 stickersPhotoRowPadding: margins(0px, 12px, 0px, 12px);
 stickersPhotoButtonHeight: 36px;
-stickersPhotoButtonRadius: 8px;
+stickersPhotoButtonRadius: 12px;
 stickersPhotoButtonPadding: margins(6px, 0px, 12px, 0px);
 stickersPhotoButtonIconSkip: 4px;
 stickersPhotoButtonFont: font(14px bold);
@@ -988,13 +988,13 @@ selfForwardsTaggerIconPadding: margins(14px, 2px, 8px, 2px);
 selfForwardsTaggerToast: Toast(defaultToast) {
 	minWidth: 160px;
 	maxWidth: 380px;
-	radius: 9px;
+	radius: 16px;
 	padding: margins(19px, 12px, 19px, 12px);
 }
 joinChatAddToFilterToast: Toast(defaultToast) {
 	minWidth: 160px;
 	maxWidth: 380px;
-	radius: 9px;
+	radius: 16px;
 	padding: margins(7px, 12px, 44px, 12px);
 }
 joinChatAddToFilterToastButton: IconButton(defaultIconButton) {
@@ -1284,7 +1284,7 @@ historyQuoteStyle: QuoteStyle(defaultQuoteStyle) {
 	verticalSkip: 4px;
 	outline: 3px;
 	outlineShift: 2px;
-	radius: 5px;
+	radius: 8px;
 }
 historyTextStyle: TextStyle(defaultTextStyle) {
 	blockquote: QuoteStyle(historyQuoteStyle) {
@@ -1486,7 +1486,7 @@ historyRecordWaveformBgMargins: margins(5px, 8px, 5px, 9px);
 
 historyRecordTooltip: ImportantTooltip(defaultImportantTooltip) {
 	padding: margins(4px, 4px, 4px, 4px);
-	radius: 12px;
+	radius: 16px;
 	arrow: 6px;
 }
 
@@ -1652,7 +1652,8 @@ defaultChooseSendAs: ChooseSendAs {
 }
 defaultComposeControls: ComposeControls {
 	bg: historyComposeAreaBg;
-	radius: 12px;
+	// m3eGram (M3 Expressive): full-pill message field (was 12px).
+	radius: 28px;
 	padding: margins(historySendRight, historySendPadding, historySendRight, historySendPadding);
 
 	field: historyComposeField;
@@ -1860,7 +1861,7 @@ topPeersSelectorSkip: point(9px, -5px);
 
 topPeersSelectorImportantTooltip: ImportantTooltip(defaultImportantTooltip) {
 	bg: msgServiceBg;
-	radius: 12px;
+	radius: 16px;
 }
 topPeersSelectorImportantTooltipLabel: FlatLabel(defaultImportantTooltipLabel) {
 	style: TextStyle(defaultTextStyle) {

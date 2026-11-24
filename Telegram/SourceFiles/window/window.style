@@ -41,6 +41,8 @@ adaptiveChatWideWidth: 880px;
 
 notifyBorder: windowShadowFgFallback;
 notifyBorderWidth: 1px;
+// m3eGram (M3 Expressive): notification is a rounded card.
+notifyRadius: 20px;
 notifySlowHide: 4000;
 notifyPhotoSize: 62px;
 notifyMacPhotoSize: 64px;

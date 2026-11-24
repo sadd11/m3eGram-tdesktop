@@ -74,3 +74,13 @@ settings.local.json
 
 # Generated changelog page (built by CI, deployed to GitHub Pages)
 /docs/changelog/
+
+# MCP local server settings / state (not for version control)
+.mcp/
+
+# m3eGram icon generator: font (downloaded on demand), backups and previews
+/tools/m3e_icons/*.ttf
+/tools/m3e_icons/*.codepoints
+/tools/m3e_icons/original_icons/
+/tools/m3e_icons/preview/
+/tools/m3e_icons/__pycache__/

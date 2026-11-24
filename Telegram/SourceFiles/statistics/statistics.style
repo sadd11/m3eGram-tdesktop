@@ -30,7 +30,7 @@ statisticsChartFooterHeight: 42px;
 statisticsChartFooterBetweenSide: 5px;
 statisticsChartFooterSideWidth: 10px;
 statisticsChartFooterArrowHeight: 10px;
-statisticsChartFooterSideRadius: 8px;
+statisticsChartFooterSideRadius: 12px;
 
 statisticsChartRulerCaptionSkip: 4px;
 

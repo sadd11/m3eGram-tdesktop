@@ -484,12 +484,31 @@ void PaintRow(
 	if (swipeTranslation) {
 		p.translate(swipeMirrored ? swipeTranslation : -swipeTranslation, 0);
 	}
-	p.fillRect(geometry, bg);
+	p.fillRect(geometry, context.currentBg);
+	// m3eGram (M3 Expressive): rounded "pill" for active / hovered rows.
+	const auto pillSkip = st::dialogsRowPillSkip;
+	const auto pillRect = geometry.marginsRemoved(QMargins(
+		pillSkip.x(),
+		pillSkip.y(),
+		pillSkip.x(),
+		pillSkip.y()));
+	const auto pillRadius = st::dialogsRowPillRadius;
+	if (context.active || context.selected) {
+		auto hq = PainterHighQualityEnabler(p);
+		p.setPen(Qt::NoPen);
+		p.setBrush(bg);
+		p.drawRoundedRect(pillRect, pillRadius, pillRadius);
+	}
 	if (!(flags & Flag::TopicJumpRipple)) {
 		auto ripple = context.active
 			? st::dialogsRippleBgActive
 			: st::dialogsRippleBg;
+		p.save();
+		auto clip = QPainterPath();
+		clip.addRoundedRect(QRectF(pillRect), pillRadius, pillRadius);
+		p.setClipPath(clip, Qt::IntersectClip);
 		row->paintRipple(p, 0, 0, context.width, &ripple->c);
+		p.restore();
 	}
 
 	if (flags & Flag::SavedMessages) {

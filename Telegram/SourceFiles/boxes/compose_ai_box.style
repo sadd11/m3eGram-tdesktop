@@ -30,7 +30,7 @@ aiComposeBadge: RoundButton(customEmojiTextBadge) {
 	textBg: activeButtonFg;
 	width: -8px;
 	height: 16px;
-	radius: 4px;
+	radius: 8px;
 	textTop: 1px;
 	style: TextStyle(semiboldTextStyle) {
 		font: font(10px semibold);
@@ -91,7 +91,7 @@ aiToneIconPreviewBg: boxBg;
 aiToneIconPreviewInnerSize: 54px;
 aiToneIconPreviewPlaceholder: icon {{ "chat/ai_style_tone", windowSubTextFg }};
 aiToneFieldBg: boxBg;
-aiToneFieldRadius: 12px;
+aiToneFieldRadius: 16px;
 aiToneFieldsSkip: 8px;
 aiToneNameField: InputField(defaultInputField) {
 	textBg: transparent;
@@ -161,7 +161,7 @@ aiTonePreviewBottomSkip: 6px;
 aiTonePreviewAnotherExampleButton: RoundButton(defaultLightButton) {
 	width: -12px;
 	height: 26px;
-	radius: 8px;
+	radius: 13px;
 	textTop: 4px;
 	style: TextStyle(defaultTextStyle) {
 		font: font(12px semibold);

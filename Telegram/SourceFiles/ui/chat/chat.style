@@ -30,11 +30,11 @@ tagInfoIcon: icon {{ "chat/large_user_tag-48x48", windowFgActive }};
 tagInfoIconPadding: margins(8px, 8px, 8px, 8px);
 tagInfoPreviewHeight: 80px;
 tagInfoPreviewGap: 8px;
-tagInfoPreviewBubbleRadius: 8px;
+tagInfoPreviewBubbleRadius: 12px;
 tagInfoPreviewLineHeight: 6px;
 tagInfoPreviewLineSpacing: 4px;
 tagInfoPreviewBubblePadding: margins(10px, 8px, 10px, 8px);
-tagInfoPreviewRadius: 8px;
+tagInfoPreviewRadius: 12px;
 tagInfoPreviewBubbleRightMargin: 10px;
 tagInfoPreviewFadeWidth: 24px;
 tagInfoPreviewBadgeTop: 6px;
@@ -380,8 +380,8 @@ HistoryFileLayout {
 	thumbSkip: pixels;
 }
 
-msgFileThumbRadiusSmall: 4px;
-msgFileThumbRadiusLarge: 12px;
+msgFileThumbRadiusSmall: 8px;
+msgFileThumbRadiusLarge: 16px;
 msgFileLayout: HistoryFileLayout {
 	padding: margins(12px, 8px, 10px, 8px);
 	nameTop: 12px;
@@ -444,7 +444,7 @@ msgVoicePlaybackMajorBlobMaxRadius: 29px;
 
 historyTranscribeSkip: 10px;
 historyTranscribeSize: size(28px, 22px);
-historyTranscribeRadius: 4px;
+historyTranscribeRadius: 8px;
 historyTranscribeLoadingSize: 24px;
 historyTranscribeLockPos: point(17px, 9px);
 historyTranscribeLockOverlayPos: point(19px, 11px);
@@ -556,7 +556,7 @@ historyPageButtonPadding: margins(13px, 8px, 13px, 8px);
 
 historyPageEnlargeSize: 36px;
 historyPageEnlargeSkip: 4px;
-historyPageEnlargeRadius: 8px;
+historyPageEnlargeRadius: 12px;
 historyPageEnlargeRippleOpacity: 0.3;
 
 historyCommentsButtonHeight: 40px;
@@ -765,7 +765,7 @@ unsupportedNoticeBadgeSize: 36px;
 unsupportedNoticeBadgeSkip: 10px;
 unsupportedNoticeButtonHeight: 30px;
 unsupportedNoticeButtonPadding: margins(12px, 0px, 12px, 0px);
-unsupportedNoticeRadius: 12px;
+unsupportedNoticeRadius: 16px;
 unsupportedNoticeMaxWidth: 430px;
 unsupportedGapSkip: 10px;
 unsupportedTearAmplitude: 5px;

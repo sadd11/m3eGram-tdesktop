@@ -442,6 +442,18 @@ void SettingsSlider::paintEvent(QPaintEvent *e) {
 			p.fillRect(rect, active ? _st.barFgActive : _st.barFg);
 		}
 	};
+	// m3eGram (M3 Expressive): the snapped active bar is a pill behind
+	// the label, so it is painted before the labels.
+	if (_st.barSnapToLabel) {
+		const auto add = _st.barStroke / 2;
+		const auto from = std::max(range.left - add, 0);
+		const auto till = std::min(range.left + range.width + add, width());
+		if (from < till) {
+			drawRect(
+				myrtlrect(from, _st.barTop, till - from, _st.barStroke),
+				true);
+		}
+	}
 	enumerateSections([&](Section &section) {
 		const auto activeWidth = _st.barSnapToLabel
 			? section.contentWidth
@@ -507,16 +519,6 @@ void SettingsSlider::paintEvent(QPaintEvent *e) {
 		}
 		return true;
 	});
-	if (_st.barSnapToLabel) {
-		const auto add = _st.barStroke / 2;
-		const auto from = std::max(range.left - add, 0);
-		const auto till = std::min(range.left + range.width + add, width());
-		if (from < till) {
-			drawRect(
-				myrtlrect(from, _st.barTop, till - from, _st.barStroke),
-				true);
-		}
-	}
 }
 
 } // namespace Ui

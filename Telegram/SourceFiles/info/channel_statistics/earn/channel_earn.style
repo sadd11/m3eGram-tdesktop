@@ -85,7 +85,7 @@ channelEarnHistoryRecipientButton: RoundButton {
 	padding: margins(0px, 0px, 0px, 0px);
 
 	textTop: 8px;
-	radius: 8px;
+	radius: 17px;
 
 	iconPosition: point(0px, 0px);
 

@@ -195,7 +195,7 @@ giftBoxGiftSkip: point(10px, 8px);
 giftBoxGiftHeight: 164px;
 giftBoxGiftSmall: 108px;
 giftBoxGiftTiny: 72px;
-giftBoxGiftRadius: 12px;
+giftBoxGiftRadius: 20px;
 giftBoxGiftBadgeFont: font(10px semibold);
 giftBoxByStarsStyle: TextStyle(defaultTextStyle) {
 	font: font(10px);
@@ -379,7 +379,7 @@ uniqueAttributeModel: RoundButton(defaultLightButton) {
 	textBg: windowBgOver;
 	textBgOver: windowBgOver;
 	ripple: defaultRippleAnimation;
-	radius: 8px;
+	radius: 16px;
 
 	width: 107px;
 	height: 34px;

@@ -87,7 +87,7 @@ infoProfileTopBarActionManage: icon{{ "profile/profile_manage", windowBoldFg }};
 infoProfileTopBarActionSearch: icon{{ "menu/search", windowBoldFg }};
 infoProfileTopBarActionLiveStream: icon{{ "profile/live_stream-23x23", windowBoldFg }};
 infoProfileTopBarTopicStatusButton: RoundButton(defaultTableSmallButton) {
-	radius: 4px;
+	radius: 12px;
 }
 infoProfileTopBarShowLastSeen: RoundButton(defaultActiveButton) {
 	textFg: windowBoldFg;

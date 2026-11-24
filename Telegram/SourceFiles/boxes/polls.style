@@ -147,8 +147,8 @@ pollBoxFilledPollSubscribersIcon: icon{{ "poll/filled/filled_poll_subscribers-20
 pollBoxFilledPollCountryIcon: icon{{ "poll/filled/filled_poll_country-20x20", activeButtonFg }};
 
 pollAttachTextSkip: 28px;
-pollAttachRadius: 8px;
-historyPollAnswerThumbRadius: 9px;
+pollAttachRadius: 12px;
+historyPollAnswerThumbRadius: 12px;
 
 pollOpenLinkUrlLabel: FlatLabel(defaultFlatLabel) {
 	minWidth: 1px;

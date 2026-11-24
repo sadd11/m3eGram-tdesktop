@@ -49,7 +49,7 @@ giveawayGiftCodeGiftOption: PremiumOption(premiumGiftOption) {
 giveawayGiftCodeStartButton: RoundButton(defaultActiveButton) {
 	height: 42px;
 	textTop: 12px;
-	radius: 6px;
+	radius: 21px;
 }
 giveawayGiftCodeQuantitySubtitle: FlatLabel(defaultFlatLabel) {
 	style: TextStyle(semiboldTextStyle) {
