@@ -905,7 +905,7 @@ index e2ba0d6..ab82ab1 100644
  premiumButtonBg1: #55a5ff; // upgrade to premium button gradient 1
  premiumButtonBg2: #a767ff; // upgrade to premium button gradient 2
 diff --git a/ui/layers/layer_widget.cpp b/ui/layers/layer_widget.cpp
-index f8b1aa6..45010ba 100644
+index f8b1aa6..6b88abc 100644
 --- a/ui/layers/layer_widget.cpp
 +++ b/ui/layers/layer_widget.cpp
 @@ -39,6 +39,8 @@ public:
@@ -981,7 +981,7 @@ index f8b1aa6..45010ba 100644
  	}
  
  	if (!_specialLayerCache.isNull() && specialLayerOpacity > 0) {
-@@ -574,6 +604,23 @@ void LayerStackWidget::setCacheImages() {
+@@ -574,6 +604,26 @@ void LayerStackWidget::setCacheImages() {
  		showChildren();
  		mainMenuCache = Ui::Shadow::grab(_mainMenu, st::boxRoundShadow, RectPart::Right);
  	}
@@ -993,10 +993,13 @@ index f8b1aa6..45010ba 100644
 +			// Children are not toggled here: that would show the new layer
 +			// before its animation. Instead the snapshot is taken only while
 +			// no layer is visible, so the stack itself paints nothing yet.
-+			const auto anyLayerVisible = (_specialLayer && _specialLayer->isVisible())
-+				|| ranges::any_of(_layers, [](const auto &layer) {
-+					return layer->isVisible();
-+				});
++			auto anyLayerVisible = _specialLayer && _specialLayer->isVisible();
++			for (const auto &layer : _layers) {
++				if (layer->isVisible()) {
++					anyLayerVisible = true;
++					break;
++				}
++			}
 +			if (!anyLayerVisible) {
 +				_background->setBlurCache(Ui::BlurredWidgetBackdrop(parent));
 +			}
@@ -1282,10 +1285,18 @@ index 4c16b67..bca26de 100644
  
  int Action::contentHeight() const {
 diff --git a/ui/widgets/menu/menu_multiline_action.cpp b/ui/widgets/menu/menu_multiline_action.cpp
-index db27772..d62f5d3 100644
+index db27772..a8e1a70 100644
 --- a/ui/widgets/menu/menu_multiline_action.cpp
 +++ b/ui/widgets/menu/menu_multiline_action.cpp
-@@ -82,7 +82,18 @@ int MultilineAction::contentHeight() const {
+@@ -7,6 +7,7 @@
+ #include "ui/widgets/menu/menu_multiline_action.h"
+ 
+ #include "ui/widgets/labels.h"
++#include "ui/painter.h"
+ #include "ui/qt_object_factory.h"
+ 
+ namespace Ui::Menu {
+@@ -82,7 +83,18 @@ int MultilineAction::contentHeight() const {
  void MultilineAction::paintEvent(QPaintEvent *e) {
  	auto p = QPainter(this);
  	const auto selected = isSelected();
