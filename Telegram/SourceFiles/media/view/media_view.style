@@ -170,7 +170,12 @@ mediaviewFileExtPadding: 10px;
 mediaviewFileLinksTop: 57px;
 mediaviewFileIconSize: 80px;
 
-mediaviewFileLink: defaultLinkButton;
+// m3eGram: the default link color is dark blue (made for light surfaces),
+// which is unreadable on the dark viewer.
+mediaviewFileLink: LinkButton(defaultLinkButton) {
+	color: mediaviewTextLinkFg;
+	overColor: mediaviewTextLinkFg;
+}
 
 mediaviewMenuSeparator: MenuSeparator(defaultMenuSeparator) {
 	fg: groupCallMenuBgOver;

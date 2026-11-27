@@ -344,7 +344,7 @@ std::optional<QColor> OverlayWidget::RendererGL::clearColor() {
 	} else if (_owner->_fullScreenVideo) {
 		return st::mediaviewVideoBg->c;
 	} else {
-		return st::mediaviewBg->c;
+		return _owner->backgroundColor();
 	}
 }
 

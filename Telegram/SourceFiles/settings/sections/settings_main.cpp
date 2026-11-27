@@ -23,6 +23,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "boxes/star_gift_box.h"
 #include "boxes/username_box.h"
 #include "core/application.h"
+#include "core/core_settings.h"
 #include "core/click_handler_types.h"
 #include "data/components/credits.h"
 #include "data/components/promo_suggestions.h"
@@ -474,6 +475,20 @@ void BuildSectionButtons(SectionBuilder &builder) {
 	});
 }
 
+// m3eGram: switch for the live background (real-time blur behind translucent
+// windows, e.g. the media viewer).
+void SetupLiveBackground(not_null<Ui::VerticalLayout*> container) {
+	const auto button = AddButtonWithIcon(
+		container,
+		rpl::single(QString::fromUtf16(u"\u0416\u0438\u0432\u043e\u0439 \u0444\u043e\u043d (\u0440\u0430\u0437\u043c\u044b\u0442\u0438\u0435 \u0432 \u0440\u0435\u0430\u043b\u044c\u043d\u043e\u043c \u0432\u0440\u0435\u043c\u0435\u043d\u0438)")),
+		st::settingsButtonNoIcon
+	)->toggleOn(rpl::single(Core::LiveBackgroundEnabled()));
+	button->toggledValue(
+	) | rpl::on_next([=](bool enabled) {
+		Core::SetLiveBackgroundEnabled(enabled);
+	}, button->lifetime());
+}
+
 void BuildInterfaceScale(SectionBuilder &builder) {
 	if (!HasInterfaceScale()) {
 		return;
@@ -486,6 +501,7 @@ void BuildInterfaceScale(SectionBuilder &builder) {
 		const auto window = &ctx.controller->window();
 		auto wrap = object_ptr<Ui::VerticalLayout>(ctx.container);
 		SetupInterfaceScale(window, wrap.data());
+		SetupLiveBackground(wrap.data());
 		return SectionBuilder::WidgetToAdd{ .widget = std::move(wrap) };
 	}, [] {
 		return SearchEntry{

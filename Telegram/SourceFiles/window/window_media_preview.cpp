@@ -151,7 +151,8 @@ void MediaPreviewWidget::paintEvent(QPaintEvent *e) {
 		p.fillRect(bg, st::stickerPreviewBg);
 		if (blurred) {
 			p.setOpacity(_a_shown.animating() ? shown : 1.);
-		}	}
+		}
+	}
 	if (!_customPadding.isNull()) {
 		p.translate(0, _customPadding.top());
 	}

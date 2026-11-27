@@ -221,6 +221,8 @@ private:
 	[[nodiscard]] Ui::GL::ChosenRenderer chooseRenderer(
 		Ui::GL::Backend backend);
 	void paint(not_null<Renderer*> renderer);
+	// m3eGram: more transparent when the live (blurred) background is on.
+	[[nodiscard]] QColor backgroundColor() const;
 
 	void setupWindow();
 	void orderWidgets();

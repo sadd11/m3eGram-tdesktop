@@ -546,6 +546,53 @@ void SetWindowScreenshotProtection(not_null<QWidget*> window, bool enabled) {
 	}
 }
 
+void SetWindowLiveBlur(not_null<QWidget*> window, bool enabled) {
+	// m3eGram: DWM blur-behind through the (undocumented but long-standing)
+	// SetWindowCompositionAttribute. The window is translucent, so what is
+	// painted with some alpha is shown over the blurred backdrop.
+	const auto handle = window->internalWinId();
+	if (!handle) {
+		return;
+	}
+	struct AccentPolicy {
+		int accentState;
+		int accentFlags;
+		int gradientColor;
+		int animationId;
+	};
+	struct CompositionAttributeData {
+		int attribute;
+		PVOID data;
+		SIZE_T size;
+	};
+	using SetCompositionAttribute = BOOL(WINAPI*)(
+		HWND,
+		CompositionAttributeData*);
+	const auto user32 = GetModuleHandleW(L"user32.dll");
+	if (!user32) {
+		return;
+	}
+	const auto set = reinterpret_cast<SetCompositionAttribute>(
+		GetProcAddress(user32, "SetWindowCompositionAttribute"));
+	if (!set) {
+		return;
+	}
+	constexpr auto kAccentDisabled = 0;
+	constexpr auto kAccentEnableBlurBehind = 3;
+	constexpr auto kAccentPolicyAttribute = 19;
+	auto policy = AccentPolicy{
+		enabled ? kAccentEnableBlurBehind : kAccentDisabled,
+		0,
+		0,
+		0
+	};
+	auto data = CompositionAttributeData{
+		kAccentPolicyAttribute,
+		&policy,
+		sizeof(policy)
+	};
+	set(reinterpret_cast<HWND>(handle), &data);
+}
 void SetWindowPriority(not_null<QWidget*> window, uint32 priority) {
 	const auto hwnd = reinterpret_cast<HWND>(window->winId());
 	Assert(hwnd != nullptr);

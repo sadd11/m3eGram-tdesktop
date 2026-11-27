@@ -193,7 +193,13 @@
 "battery_saver"
 ],
 "menu/premium": "star",
-"menu/qr_code": "qr_code_2",
+"menu/qr_code": {
+"g": [
+"qr_code",
+"qr_code_2"
+],
+"weight": 500
+},
 "menu/read": [
 "mark_chat_read",
 "done_all"

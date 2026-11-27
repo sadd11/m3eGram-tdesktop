@@ -65,6 +65,8 @@ void AutostartToggle(bool enabled, Fn<void(bool)> done = nullptr);
 [[nodiscard]] bool ScreenshotProtectionSupported();
 [[nodiscard]] bool AmbientScreenshotProtectionSupported();
 void SetWindowScreenshotProtection(not_null<QWidget*> window, bool enabled);
+// m3eGram: real-time blur of what is behind a translucent window.
+void SetWindowLiveBlur(not_null<QWidget*> window, bool enabled);
 void WriteCrashDumpDetails();
 void NewVersionLaunched(int oldVersion);
 [[nodiscard]] QImage DefaultApplicationIcon();

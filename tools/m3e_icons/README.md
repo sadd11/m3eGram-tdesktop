@@ -20,3 +20,11 @@ Solid originals (play, pause, comments, settings list, folders) use the FILL=1 g
 
 The font is downloaded on first run and is not committed. Only the generated PNGs are.
 Not touched: SVG icons, logos, shadows, backgrounds, illustrations, bubble tails.
+
+## App icon
+
+    python make_app_icon.py --preview   # app_icon_preview.png only
+    python make_app_icon.py --apply     # rewrite Telegram/Resources/art/icon*.png and icon256.ico
+
+The icon (taskbar, window, exe) is an M3 squircle with a tonal gradient and a vector paper plane.
+Originals are backed up to ./original_icons/app.

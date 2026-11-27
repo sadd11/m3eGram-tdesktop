@@ -1,105 +1,81 @@
-# [Telegram Desktop][telegram_desktop] – Official Messenger
+# m3eGram
 
-This is the complete source code and the build instructions for the official [Telegram][telegram] messenger desktop client, based on the [Telegram API][telegram_api] and the [MTProto][telegram_proto] secure protocol.
+**Telegram Desktop в стиле Material Design 3 Expressive.**
+Неофициальный форк [Telegram Desktop](https://github.com/telegramdesktop/tdesktop): весь интерфейс переработан под M3E, сборки делаются в облаке (GitHub Actions).
 
-[![Version](https://badge.fury.io/gh/telegramdesktop%2Ftdesktop.svg)](https://github.com/telegramdesktop/tdesktop/releases)
-[![Build Status](https://github.com/telegramdesktop/tdesktop/workflows/Windows./badge.svg)](https://github.com/telegramdesktop/tdesktop/actions)
-[![Build Status](https://github.com/telegramdesktop/tdesktop/workflows/MacOS./badge.svg)](https://github.com/telegramdesktop/tdesktop/actions)
-[![Build Status](https://github.com/telegramdesktop/tdesktop/workflows/Linux./badge.svg)](https://github.com/telegramdesktop/tdesktop/actions)
-[![Built with Depot](https://img.shields.io/badge/Built%20with-Depot.dev-46A75A)](https://depot.dev)
+> Это экспериментальный сторонний клиент. Он не связан с Telegram FZ-LLC и не одобрен ею.
+> Для работы нужны **собственные** `api_id` и `api_hash` (бесплатно: <https://my.telegram.org> → *API development tools*).
 
-[![Preview of Telegram Desktop][preview_image]][preview_image_url]
+## Что изменено
 
-The source code is published under GPLv3 with OpenSSL exception, the license is available [here][license].
+**Форма и компоненты**
+- Список чатов: активный и наведённый чат — скруглённая «пилюля», вкладки папок — тонированные пилюли.
+- Поле ввода сообщения — полная пилюля; единая шкала скруглений M3E (8 / 12 / 16 / 20 / 28) в боксах, настройках, профиле, звонках, редакторе, платежах и т. д.
+- Переключатели 52×32 в стиле M3, пилюли в меню и в списках настроек, скруглённые меню, тосты и подсказки.
+- Всплывающее уведомление о сообщении — скруглённая карточка.
+- Исправлены места, где радиус больше половины элемента (кнопки бота, плашки времени, вкладки тем, верхние панели): раньше там появлялись полосы или «дырки».
 
-## Supported systems
+**Блюр и «живой фон»**
+- Под боксами, настройками и главным меню вместо чёрного затемнения — размытый снимок окна.
+- Превью стикеров и GIF — на размытом фоне.
+- Переключатель **«Живой фон (размытие в реальном времени)»** (Настройки, под ползунком масштаба интерфейса): просмотр медиа становится полупрозрачным с настоящим размытием того, что за окном. Сейчас только Windows.
+- В просмотре медиа ссылки-кнопки стали читаемыми на тёмном фоне.
 
-The latest version is available for
+**Иконки**
+- 579 иконок интерфейса заменены на [Material Symbols](https://github.com/google/material-design-icons) (Rounded), 1737 PNG (1x/2x/3x) с теми же размерами, что у оригиналов.
+- Новая иконка приложения (панель задач, окно, `.exe`).
 
-* [Windows 7 and above (64 bit)](https://telegram.org/dl/desktop/win64) ([portable](https://telegram.org/dl/desktop/win64_portable))
-* [Windows 7 and above (32 bit)](https://telegram.org/dl/desktop/win) ([portable](https://telegram.org/dl/desktop/win_portable))
-* [macOS 10.13 and above](https://telegram.org/dl/desktop/mac)
-* [Linux static build for 64 bit](https://telegram.org/dl/desktop/linux)
-* [Snap](https://snapcraft.io/telegram-desktop)
-* [Flatpak](https://flathub.org/apps/details/org.telegram.desktop)
+## Сборки
 
-## Old system versions
+Готовые файлы собираются в GitHub Actions и лежат в артефактах запуска:
 
-Version **4.9.9** was the last that supports older systems
+| Платформа | Workflow | Запуск | Артефакт |
+|---|---|---|---|
+| Windows x64 | `build-windows.yml` | вручную (*Run workflow*) | `tdesktop-m3e-expressive-win64` |
+| Linux x64 | `build-linux.yml` | автоматически при пуше в `main` | `tdesktop-m3e-expressive-linux` |
 
-* [macOS 10.12](https://updates.tdesktop.com/tmac/tsetup.4.9.9.dmg)
-* [Linux with glibc < 2.28 static build](https://updates.tdesktop.com/tlinux/tsetup.4.9.9.tar.xz)
+Windows-сборка долгая: она собирает Qt, FFmpeg, OpenSSL и т. д. с нуля (порядка 5 часов).
 
-Version **2.4.4** was the last that supports older systems
+**Перед первой сборкой** добавьте в *Settings → Secrets and variables → Actions* два секрета: `TDESKTOP_API_ID` и `TDESKTOP_API_HASH`.
 
-* [OS X 10.10 and 10.11](https://updates.tdesktop.com/tosx/tsetup-osx.2.4.4.dmg)
-* [Linux static build for 32 bit](https://updates.tdesktop.com/tlinux32/tsetup32.2.4.4.tar.xz)
+## Как устроен репозиторий
 
-Version **1.8.15** was the last that supports older systems
+- `Telegram/SourceFiles` — исходники клиента, правки внесены прямо в них.
+- `Telegram/lib_ui` — сабмодуль. Его стили и виджеты правятся патчем **`patches/lib-ui-md3.patch`**, который CI накладывает на закреплённый коммит сабмодуля.
+- `tools/m3e_icons` — генератор иконок и таблица соответствий `mapping.json` (иконка Telegram → глиф Material Symbols); см. [`tools/m3e_icons/README.md`](tools/m3e_icons/README.md).
+- `patches/README.md` — подробный список изменений по файлам.
 
-* [Windows XP and Vista](https://updates.tdesktop.com/tsetup/tsetup.1.8.15.exe) ([portable](https://updates.tdesktop.com/tsetup/tportable.1.8.15.zip))
-* [OS X 10.8 and 10.9](https://updates.tdesktop.com/tmac/tsetup.1.8.15.dmg)
-* [OS X 10.6 and 10.7](https://updates.tdesktop.com/tmac32/tsetup32.1.8.15.dmg)
+### Пересборка патча `lib_ui`
 
-## Third-party
+```powershell
+git clone https://github.com/desktop-app/lib_ui.git lib_ui-work
+cd lib_ui-work
+git checkout <закреплённый коммит из Telegram/lib_ui>
+git apply ..\patches\lib-ui-md3.patch
+# ...правки...
+git add -A
+git diff --cached <закреплённый коммит> --output=..\patches\lib-ui-md3.patch
+git apply --check ..\patches\lib-ui-md3.patch   # на чистом checkout
+```
 
-* Qt 6 ([LGPL](http://doc.qt.io/qt-6/lgpl.html)) and Qt 5.15 ([LGPL](http://doc.qt.io/qt-5/lgpl.html)) slightly patched
-* OpenSSL 3.2.1 ([Apache License 2.0](https://openssl-library.org/source/license/apache-license-2.0.txt))
-* WebRTC ([New BSD License](https://github.com/desktop-app/tg_owt/blob/master/LICENSE))
-* zlib ([zlib License](http://www.zlib.net/zlib_license.html))
-* LZMA SDK 9.20 ([public domain](http://www.7-zip.org/sdk.html))
-* liblzma ([public domain](http://tukaani.org/xz/))
-* Google Breakpad ([License](https://chromium.googlesource.com/breakpad/breakpad/+/master/LICENSE))
-* Google Crashpad ([Apache License 2.0](https://chromium.googlesource.com/crashpad/crashpad/+/master/LICENSE))
-* GYP ([BSD License](https://github.com/bnoordhuis/gyp/blob/master/LICENSE))
-* Ninja ([Apache License 2.0](https://github.com/ninja-build/ninja/blob/master/COPYING))
-* OpenAL Soft ([LGPL](https://github.com/kcat/openal-soft/blob/master/COPYING))
-* Opus codec ([BSD License](http://www.opus-codec.org/license/))
-* FFmpeg ([LGPL](https://www.ffmpeg.org/legal.html))
-* Guideline Support Library ([MIT License](https://github.com/Microsoft/GSL/blob/master/LICENSE))
-* Range-v3 ([Boost License](https://github.com/ericniebler/range-v3/blob/master/LICENSE.txt))
-* Open Sans font ([Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html))
-* Vazirmatn font ([SIL Open Font License 1.1](https://github.com/rastikerdar/vazirmatn/blob/master/OFL.txt))
-* Emoji alpha codes ([MIT License](https://github.com/emojione/emojione/blob/master/extras/alpha-codes/LICENSE.md))
-* xxHash ([BSD License](https://github.com/Cyan4973/xxHash/blob/dev/LICENSE))
-* QR Code generator ([MIT License](https://github.com/nayuki/QR-Code-generator#license))
-* CMake ([New BSD License](https://github.com/Kitware/CMake/blob/master/Copyright.txt))
-* Hunspell ([LGPL](https://github.com/hunspell/hunspell/blob/master/COPYING.LESSER))
-* Ada ([Apache License 2.0](https://github.com/ada-url/ada/blob/main/LICENSE-APACHE))
-* zxcvbn-c ([MIT License](https://github.com/tsyrogit/zxcvbn-c/blob/master/LICENSE.txt))
-* twidget ([BSD 3-Clause License](https://github.com/TelegramMessenger/twidget/blob/main/LICENSE))
-* litehtml ([BSD 3-Clause License](https://github.com/litehtml/litehtml/blob/master/LICENSE))
-* Gumbo ([Apache License 2.0](https://github.com/google/gumbo-parser/blob/master/COPYING))
-* QuickJS-ng ([MIT License](https://github.com/quickjs-ng/quickjs/blob/master/LICENSE))
-* FrequencyWords by Hermit Dave ([Creative Commons Attribution-ShareAlike 4.0](https://creativecommons.org/licenses/by-sa/4.0/))
+### Перегенерация иконок
 
-## Build instructions
+```powershell
+pip install pillow
+cd tools\m3e_icons
+python generate.py --apply        # иконки интерфейса
+python make_app_icon.py --apply   # иконка приложения
+python generate.py --restore      # вернуть оригиналы
+```
 
-* [Windows (32-bit and 64-bit)][win]
-* [macOS][mac]
-* [GNU/Linux using Docker][linux]
+## Лицензия
 
-[//]: # (LINKS)
-[telegram]: https://telegram.org
-[telegram_desktop]: https://desktop.telegram.org
-[telegram_api]: https://core.telegram.org
-[telegram_proto]: https://core.telegram.org/mtproto
-[license]: LICENSE
-[win]: docs/building-win.md
-[mac]: docs/building-mac.md
-[linux]: docs/building-linux.md
-[preview_image]: https://github.com/telegramdesktop/tdesktop/blob/dev/docs/assets/preview.png "Preview of Telegram Desktop"
-[preview_image_url]: https://raw.githubusercontent.com/telegramdesktop/tdesktop/dev/docs/assets/preview.png
+Исходный код распространяется под GPLv3 с исключением для OpenSSL, как и у Telegram Desktop: см. [LICENSE](LICENSE).
+Оригинальный README Telegram Desktop сохранён в [`docs/README.upstream.md`](docs/README.upstream.md) (там же список сторонних компонентов).
+Инструкции по сборке на своей машине: [Windows](docs/building-win.md), [macOS](docs/building-mac.md), [Linux](docs/building-linux.md).
 
-## Thanks to
+---
 
-<a href="https://depot.dev">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://depot.dev/assets/brand/1693758816/depot-logo-horizontal-on-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://depot.dev/assets/brand/1693758816/depot-logo-horizontal-on-light.svg">
-    <img alt="Depot" src="https://depot.dev/assets/brand/1693758816/depot-logo-horizontal-on-light.svg" width="150">
-  </picture>
-</a>
+### English summary
 
-CI infrastructure sponsored by [Depot](https://depot.dev) — fast GitHub Actions runners.
-
+m3eGram is an unofficial Telegram Desktop fork redesigned in Material Design 3 Expressive (pill-shaped list items and tabs, M3 switches and menus, frosted scrims, Material Symbols icons, a new app icon and a "live background" toggle for real-time blur on Windows). Builds are produced by GitHub Actions; add your own `TDESKTOP_API_ID` / `TDESKTOP_API_HASH` secrets first. Not affiliated with Telegram.

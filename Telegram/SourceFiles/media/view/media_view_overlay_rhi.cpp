@@ -743,7 +743,7 @@ QColor OverlayWidget::RendererRhi::rhiClearColor() {
 	} else if (_owner->_fullScreenVideo) {
 		return st::mediaviewVideoBg->c;
 	} else {
-		return st::mediaviewBg->c;
+		return _owner->backgroundColor();
 	}
 }
 
@@ -753,7 +753,7 @@ std::optional<QColor> OverlayWidget::RendererRhi::clearColor() {
 	} else if (_owner->_fullScreenVideo) {
 		return st::mediaviewVideoBg->c;
 	} else {
-		return st::mediaviewBg->c;
+		return _owner->backgroundColor();
 	}
 }
 
@@ -1088,10 +1088,9 @@ void OverlayWidget::RendererRhi::paintBackground() {
 	if (!_initialized) {
 		return;
 	}
-	const auto &bg = _owner->_fullScreenVideo
-		? st::mediaviewVideoBg
-		: st::mediaviewBg;
-	const auto c = bg->c;
+	const auto c = _owner->_fullScreenVideo
+		? st::mediaviewVideoBg->c
+		: _owner->backgroundColor();
 	const auto vw = float(_viewport.width() * _factor);
 	const auto vh = float(_viewport.height() * _factor);
 

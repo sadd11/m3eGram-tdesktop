@@ -21,6 +21,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "webrtc/webrtc_device_common.h"
 #include "window/section_widget.h"
 
+#include <QtCore/QSettings>
+
 namespace Core {
 namespace {
 
@@ -2137,6 +2139,16 @@ Dialogs::Ui::QuickDialogAction Settings::quickDialogAction() const {
 
 void Settings::setQuickDialogAction(Dialogs::Ui::QuickDialogAction action) {
 	_quickDialogAction = action;
+}
+
+bool LiveBackgroundEnabled() {
+	auto settings = QSettings(u"m3eGram"_q, u"m3eGram"_q);
+	return settings.value(u"liveBackground"_q, false).toBool();
+}
+
+void SetLiveBackgroundEnabled(bool enabled) {
+	auto settings = QSettings(u"m3eGram"_q, u"m3eGram"_q);
+	settings.setValue(u"liveBackground"_q, enabled);
 }
 
 } // namespace Core

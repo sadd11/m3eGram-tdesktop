@@ -27,6 +27,9 @@ inline bool SkipTaskbarSupported() {
 	return false;
 }
 
+inline void SetWindowLiveBlur(not_null<QWidget*> window, bool enabled) {
+}
+
 [[nodiscard]] bool HasTouchBar();
 
 void ActivateThisProcess();

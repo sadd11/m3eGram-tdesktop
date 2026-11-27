@@ -247,7 +247,6 @@ void ChatsFiltersTabs::paintEvent(QPaintEvent *e) {
 
 	auto index = 0;
 	auto raisedIndex = -1;
-	auto activeHorizontalShift = 0;
 	// m3eGram (M3 Expressive): the active bar is a pill behind the label,
 	// so it is painted before the labels.
 	if (_st.barSnapToLabel) {
@@ -284,9 +283,6 @@ void ChatsFiltersTabs::paintEvent(QPaintEvent *e) {
 		const auto shiftedLeft = section.left + horizontalShift;
 		if (_sections[index].raise) {
 			raisedIndex = index;
-		}
-		if (index == activeIndex) {
-			activeHorizontalShift = horizontalShift;
 		}
 
 		// const auto activeLeft = shiftedLeft

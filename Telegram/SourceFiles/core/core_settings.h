@@ -1212,5 +1212,10 @@ private:
 
 };
 
+// m3eGram: "live background" switch (real-time blur behind translucent
+// windows). Stored separately from the main settings blob (QSettings).
+[[nodiscard]] bool LiveBackgroundEnabled();
+void SetLiveBackgroundEnabled(bool enabled);
+
 } // namespace Core
 

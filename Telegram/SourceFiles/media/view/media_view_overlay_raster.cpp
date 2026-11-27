@@ -81,9 +81,9 @@ void OverlayWidget::RendererSW::paintBackground() {
 
 	const auto m = _p->compositionMode();
 	_p->setCompositionMode(QPainter::CompositionMode_Source);
-	const auto &bg = _owner->_fullScreenVideo
-		? st::mediaviewVideoBg
-		: st::mediaviewBg;
+	const auto bg = _owner->_fullScreenVideo
+		? st::mediaviewVideoBg->c
+		: _owner->backgroundColor();
 	for (const auto &rect : region) {
 		_p->fillRect(rect, bg);
 	}

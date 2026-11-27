@@ -1021,6 +1021,109 @@ index 433128b..d651014 100644
  
  boxButtonFont: font(boxFontSize semibold);
  defaultBoxButtonTextStyle: TextStyle(semiboldTextStyle) {
+diff --git a/ui/round_rect.cpp b/ui/round_rect.cpp
+index d80ff9f..959ecfd 100644
+--- a/ui/round_rect.cpp
++++ b/ui/round_rect.cpp
+@@ -9,6 +9,7 @@
+ #include "ui/style/style_core.h"
+ #include "ui/image/image_prepare.h"
+ #include "ui/ui_utility.h"
++#include "ui/painter.h"
+ 
+ #include <QPainterPath>
+ 
+@@ -74,19 +75,49 @@ void DrawRoundedRect(
+ 	const auto y = rect.y();
+ 	const auto w = rect.width();
+ 	const auto h = rect.height();
+-	const auto cornerWidth = corners[0].width() / pixelRatio;
+-	const auto cornerHeight = corners[0].height() / pixelRatio;
++	const auto fullCornerWidth = corners[0].width() / pixelRatio;
++	const auto fullCornerHeight = corners[0].height() / pixelRatio;
+ 
+ 	const auto hasLeft = (parts & RectPart::Left) != 0;
+ 	const auto hasRight = (parts & RectPart::Right) != 0;
+ 	const auto hasTop = (parts & RectPart::Top) != 0;
+ 	const auto hasBottom = (parts & RectPart::Bottom) != 0;
+-	if (w < ((hasLeft ? cornerWidth : 0) + (hasRight ? cornerWidth : 0))) {
++	if (w <= 0 || h <= 0) {
+ 		return;
+ 	}
+-	if (h < ((hasTop ? cornerHeight : 0) + (hasBottom ? cornerHeight : 0))) {
++	// m3eGram (M3 Expressive): large radii can exceed half of a small element.
++	// Draw it as one rounded rect with the radius clamped to its size.
++	if ((parts & RectPart::Full) == RectPart::Full
++		&& (w < 2 * fullCornerWidth || h < 2 * fullCornerHeight)) {
++		const auto radius = std::min<qreal>(
++			std::min(fullCornerWidth, fullCornerHeight),
++			std::min(w, h) / 2.);
++		auto hq = PainterHighQualityEnabler(p);
++		p.setPen(Qt::NoPen);
++		p.setBrush(brush);
++		p.drawRoundedRect(QRectF(x, y, w, h), radius, radius);
+ 		return;
+ 	}
++	// Partial parts of a small element: shrink the corners to fit instead of
++	// drawing nothing (this used to leave holes in tab strips and top bars).
++	const auto horizontal = (hasLeft ? 1 : 0) + (hasRight ? 1 : 0);
++	const auto vertical = (hasTop ? 1 : 0) + (hasBottom ? 1 : 0);
++	const auto cornerWidth = horizontal
++		? std::min(fullCornerWidth, w / horizontal)
++		: fullCornerWidth;
++	const auto cornerHeight = vertical
++		? std::min(fullCornerHeight, h / vertical)
++		: fullCornerHeight;
++	const auto shrunk = (cornerWidth != fullCornerWidth)
++		|| (cornerHeight != fullCornerHeight);
++	const auto drawCorner = [&](int cx, int cy, const QImage &image) {
++		if (!shrunk) {
++			p.drawImage(cx, cy, image);
++			return;
++		}
++		auto hq = PainterHighQualityEnabler(p);
++		p.drawImage(QRect(cx, cy, cornerWidth, cornerHeight), image);
++	};
+ 	if (w > 2 * cornerWidth) {
+ 		if (hasTop) {
+ 			p.fillRect(x + cornerWidth, y, w - 2 * cornerWidth, cornerHeight, brush);
+@@ -111,16 +142,16 @@ void DrawRoundedRect(
+ 		}
+ 	}
+ 	if (parts & RectPart::TopLeft) {
+-		p.drawImage(x, y, corners[0]);
++		drawCorner(x, y, corners[0]);
+ 	}
+ 	if (parts & RectPart::TopRight) {
+-		p.drawImage(x + w - cornerWidth, y, corners[1]);
++		drawCorner(x + w - cornerWidth, y, corners[1]);
+ 	}
+ 	if (parts & RectPart::BottomLeft) {
+-		p.drawImage(x, y + h - cornerHeight, corners[2]);
++		drawCorner(x, y + h - cornerHeight, corners[2]);
+ 	}
+ 	if (parts & RectPart::BottomRight) {
+-		p.drawImage(x + w - cornerWidth, y + h - cornerHeight, corners[3]);
++		drawCorner(x + w - cornerWidth, y + h - cornerHeight, corners[3]);
+ 	}
+ }
+ 
+@@ -186,8 +217,13 @@ void RoundRect::paintSomeRounded(
+ 		corners | RectPart::Top | RectPart::NoTopBottom | RectPart::Bottom);
+ 
+ 	const auto pixelRatio = style::DevicePixelRatio();
+-	const auto cornerWidth = _corners[0].width() / pixelRatio;
+-	const auto cornerHeight = _corners[0].height() / pixelRatio;
++	// Same shrinking as in DrawRoundedRect above (m3eGram).
++	const auto cornerWidth = std::min(
++		_corners[0].width() / pixelRatio,
++		rect.width() / 2);
++	const auto cornerHeight = std::min(
++		_corners[0].height() / pixelRatio,
++		rect.height() / 2);
+ 	if (!(corners & RectPart::TopLeft)) {
+ 		p.fillRect(rect.x(), rect.y(), cornerWidth, cornerHeight, _color);
+ 	}
 diff --git a/ui/ui_utility.cpp b/ui/ui_utility.cpp
 index b067d4d..f2b7bc4 100644
 --- a/ui/ui_utility.cpp

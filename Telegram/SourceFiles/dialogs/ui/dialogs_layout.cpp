@@ -494,9 +494,10 @@ void PaintRow(
 		pillSkip.y()));
 	const auto pillRadius = st::dialogsRowPillRadius;
 	if (context.active || context.selected) {
+		const QBrush pillBrush = bg;
 		auto hq = PainterHighQualityEnabler(p);
 		p.setPen(Qt::NoPen);
-		p.setBrush(bg);
+		p.setBrush(pillBrush);
 		p.drawRoundedRect(pillRect, pillRadius, pillRadius);
 	}
 	if (!(flags & Flag::TopicJumpRipple)) {

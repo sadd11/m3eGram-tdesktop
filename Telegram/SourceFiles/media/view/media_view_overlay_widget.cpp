@@ -19,6 +19,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "boxes/premium_preview_box.h"
 #include "calls/calls_instance.h"
 #include "core/application.h"
+#include "core/core_settings.h"
 #include "core/click_handler_types.h"
 #include "core/core_screenshot_protection.h"
 #include "core/file_utilities.h"
@@ -944,6 +945,13 @@ OverlayWidget::OverlayWidget()
 		Platform::SetWindowScreenshotProtection(
 			_window,
 			_screenshotProtected);
+	}, lifetime());
+
+	// m3eGram: the live background (blur behind the window) is lost together
+	// with the native window, so it is reapplied on every handle change too.
+	_window->winIdValue(
+	) | rpl::on_next([=](WId) {
+		Platform::SetWindowLiveBlur(_window, Core::LiveBackgroundEnabled());
 	}, lifetime());
 
 	_window->screenValue(
@@ -5042,6 +5050,7 @@ void OverlayWidget::showAndActivate() {
 		_window->showMaximized();
 	}
 	_helper->afterShow(_fullscreen);
+	Platform::SetWindowLiveBlur(_window, Core::LiveBackgroundEnabled());
 	_widget->update();
 	activate();
 }
@@ -6483,6 +6492,14 @@ Ui::GL::ChosenRenderer OverlayWidget::chooseRenderer(
 			: std::make_unique<RendererSW>(this)),
 		.backend = backend,
 	};
+}
+
+QColor OverlayWidget::backgroundColor() const {
+	auto result = st::mediaviewBg->c;
+	if (Core::LiveBackgroundEnabled()) {
+		result.setAlpha(150);
+	}
+	return result;
 }
 
 void OverlayWidget::paint(not_null<Renderer*> renderer) {

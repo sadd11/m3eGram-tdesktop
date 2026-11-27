@@ -62,6 +62,9 @@ inline void SetWindowScreenshotProtection(
 		bool enabled) {
 }
 
+inline void SetWindowLiveBlur(not_null<QWidget*> window, bool enabled) {
+}
+
 } // namespace Platform
 
 inline void psCheckLocalSocket(const QString &serverName) {

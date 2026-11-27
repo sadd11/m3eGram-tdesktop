@@ -140,6 +140,45 @@ void FillRoundRect(QPainter &p, int32 x, int32 y, int32 w, int32 h, style::color
 	};
 	const auto top = verticalSkip(kTopLeft, kTopRight);
 	const auto bottom = verticalSkip(kBottomLeft, kBottomRight);
+	const auto leftMax = std::max(cornerSize(kTopLeft), cornerSize(kBottomLeft));
+	const auto rightMax = std::max(cornerSize(kTopRight), cornerSize(kBottomRight));
+	if (w > 0 && h > 0 && (h < top + bottom || w < leftMax + rightMax)) {
+		// m3eGram (M3 Expressive): the corner radius is larger than half of
+		// this element, so the corner strips would overlap and a translucent
+		// fill would show a lighter band. Draw one path with clamped radii.
+		const auto limit = std::min(w, h) / 2.;
+		const auto radius = [&](int index) {
+			return std::min<qreal>(cornerSize(index), limit);
+		};
+		const auto tl = radius(kTopLeft);
+		const auto tr = radius(kTopRight);
+		const auto bl = radius(kBottomLeft);
+		const auto br = radius(kBottomRight);
+		auto path = QPainterPath();
+		path.moveTo(x + tl, y);
+		path.lineTo(x + w - tr, y);
+		if (tr > 0) {
+			path.arcTo(QRectF(x + w - 2 * tr, y, 2 * tr, 2 * tr), 90, -90);
+		}
+		path.lineTo(x + w, y + h - br);
+		if (br > 0) {
+			path.arcTo(QRectF(x + w - 2 * br, y + h - 2 * br, 2 * br, 2 * br), 0, -90);
+		}
+		path.lineTo(x + bl, y + h);
+		if (bl > 0) {
+			path.arcTo(QRectF(x, y + h - 2 * bl, 2 * bl, 2 * bl), 270, -90);
+		}
+		path.lineTo(x, y + tl);
+		if (tl > 0) {
+			path.arcTo(QRectF(x, y, 2 * tl, 2 * tl), 180, -90);
+		}
+		path.closeSubpath();
+		auto hq = PainterHighQualityEnabler(p);
+		p.setPen(Qt::NoPen);
+		p.setBrush(bg->b);
+		p.drawPath(path);
+		return;
+	}
 	if (top) {
 		const auto left = cornerSize(kTopLeft);
 		const auto right = cornerSize(kTopRight);
