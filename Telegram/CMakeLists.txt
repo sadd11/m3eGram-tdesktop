@@ -1976,6 +1976,8 @@ PRIVATE
     settings/sections/settings_global_ttl.h
     settings/sections/settings_information.cpp
     settings/sections/settings_information.h
+    settings/sections/settings_plugins.cpp
+    settings/sections/settings_plugins.h
     settings/settings_intro.cpp
     settings/settings_intro.h
     settings/sections/settings_local_passcode.cpp
@@ -2284,6 +2286,14 @@ PRIVATE
     tgw/tgw_touch_lists.cpp
     tgw/tgw_wallet.cpp
     tgw/tgw_wallet.h
+    plugins/plugins_bridge.cpp
+    plugins/plugins_bridge.h
+    plugins/plugins_converter.cpp
+    plugins/plugins_converter.h
+    plugins/plugins_manager.cpp
+    plugins/plugins_manager.h
+    plugins/plugins_runtime.cpp
+    plugins/plugins_runtime.h
     ui/boxes/edit_invite_link_session.cpp
     ui/boxes/edit_invite_link_session.h
     ui/boxes/emoji_stake_box.cpp

@@ -8,6 +8,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #pragma once
 
 #include "ui/wrap/slide_wrap.h"
+#include "ui/effects/panel_backdrop.h" // m3eGram
 #include "base/object_ptr.h"
 
 namespace Ui {
@@ -47,6 +48,11 @@ public:
 	[[nodiscard]] rpl::producer<> barRightClicks() const;
 	[[nodiscard]] rpl::producer<> contextMenuRequested() const;
 
+	// m3eGram: frosted backdrop of the list under the translucent bar.
+	// The factory renders the content underneath the given panel widget.
+	void setBackdropFactory(Fn<QImage(not_null<QWidget*> panel)> factory);
+	void invalidateBackdrop();
+
 	[[nodiscard]] rpl::lifetime &lifetime() {
 		return _wrap.lifetime();
 	}
@@ -59,6 +65,10 @@ private:
 
 	Ui::SlideWrap<> _wrap;
 	std::unique_ptr<Ui::MessageBar> _bar;
+
+	// m3eGram: frosted backdrop of the list under the translucent bar.
+	Ui::PanelBackdrop _backdrop;
+	Fn<QImage(not_null<QWidget*> panel)> _backdropFactory;
 
 	struct {
 		RightButton button = { nullptr };

@@ -10,6 +10,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/rp_widget.h"
 #include "ui/unread_badge.h"
 #include "ui/effects/animations.h"
+#include "ui/effects/panel_backdrop.h" // m3eGram
 #include "base/timer.h"
 #include "base/object_ptr.h"
 #include "base/weak_qptr.h"
@@ -78,6 +79,10 @@ public:
 		return _membersShowAreaActive.events();
 	}
 	void setAnimatingMode(bool enabled);
+
+	// m3eGram: frosted backdrop of the message list under the bar.
+	void setBackdropCapture(Fn<QImage()> capture);
+	void invalidateBackdrop();
 
 	void setActiveChat(
 		ActiveChat activeChat,
@@ -276,6 +281,9 @@ private:
 
 	SendActionPainter *_sendAction = nullptr;
 	std::optional<Data::ReportInput> _chooseForReportReason;
+
+	// m3eGram: frosted backdrop of the list under the translucent bar.
+	Ui::PanelBackdrop _backdrop;
 
 	base::Timer _onlineUpdater;
 

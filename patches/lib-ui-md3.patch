@@ -14,7 +14,7 @@ index 28095c2..530bbbb 100644
  dateRadius: roundRadiusLarge;
  
 diff --git a/ui/colors.palette b/ui/colors.palette
-index e2ba0d6..ab82ab1 100644
+index e2ba0d6..8e0d409 100644
 --- a/ui/colors.palette
 +++ b/ui/colors.palette
 @@ -6,22 +6,22 @@
@@ -86,8 +86,7 @@ index e2ba0d6..ab82ab1 100644
  lightButtonFgOver: lightButtonFg; // default light button text with mouse over
  
 -attentionButtonFg: #d14e4e; // default attention button text (like confirm button on log out)
-+attentionButtonFg: #b3261e; // default attention button text (like confirm button on log out)
- attentionButtonFgOver: #d14e4e; // default attention button text with mouse over
+-attentionButtonFgOver: #d14e4e; // default attention button text with mouse over
 -attentionButtonBgOver: #fcdfde; // default attention button background with mouse over
 -attentionButtonBgRipple: #f4c3c2; // default attention button ripple effect
 -
@@ -109,6 +108,8 @@ index e2ba0d6..ab82ab1 100644
 -smallCloseIconFgOver: #a3a3a3; // small X icon with mouse over
 -
 -radialFg: windowFgActive; // default radial loader line (like in Media Viewer when loading a photo)
++attentionButtonFg: #b3261e; // default attention button text (like confirm button on log out)
++attentionButtonFgOver: #b3261e; // default attention button text with mouse over
 +attentionButtonBgOver: #f9dedc; // default attention button background with mouse over
 +attentionButtonBgRipple: #e8b0ac; // default attention button ripple effect
 +
@@ -455,20 +456,20 @@ index e2ba0d6..ab82ab1 100644
 -historySendingInIconFg: #a0adb5; // inbox sending message icon (clock) (like in sent messages to yourself or in sent messages to a channel)
 +historyTextInFg: #191c1e; // inbox message text
 +historyTextInFgSelected: #191c1e; // inbox message selected text or text in a selected message
-+historyTextOutFg: #001e2f; // outbox message text
-+historyTextOutFgSelected: #001e2f; // outbox message selected text or text in a selected message
++historyTextOutFg: #004b73; // outbox message text
++historyTextOutFgSelected: #004b73; // outbox message selected text or text in a selected message
 +historyLinkInFg: #006591; // inbox message link
 +historyLinkInFgSelected: #006591; // inbox message link in a selected text or message
 +historyLinkOutFg: #006591; // outbox message link
 +historyLinkOutFgSelected: #006591; // outbox message link in a selected text or message
 +historyFileNameInFg: #191c1e; // inbox media filename text
 +historyFileNameInFgSelected: #191c1e; // inbox media filename text in a selected message
-+historyFileNameOutFg: #001e2f; // outbox media filename text
-+historyFileNameOutFgSelected: #001e2f; // outbox media filename text in a selected message
++historyFileNameOutFg: #004b73; // outbox media filename text
++historyFileNameOutFgSelected: #004b73; // outbox media filename text in a selected message
 +historyOutIconFg: #006591; // outbox message tick / double tick icon
 +historyOutIconFgSelected: #006591; // outbox message tick / double tick icon in a selected message
 +historyIconFgInverted: #ffffff; // media message tick / double tick icon (like in sent photo)
-+historySendingOutIconFg: #004c6f; // outbox sending message icon (clock)
++historySendingOutIconFg: #004b73; // outbox sending message icon (clock)
 +historySendingInIconFg: #71787e; // inbox sending message icon (clock) (like in sent messages to yourself or in sent messages to a channel)
  historySendingInvertedIconFg: #ffffffc8; // media sending message icon (clock) (like in sent photo)
 -historyCallArrowInFg: #32b032; // received phone call arrow
@@ -562,22 +563,22 @@ index e2ba0d6..ab82ab1 100644
 +
 +msgInBg: #e7e8eb; // inbox message background
 +msgInBgSelected: #b4cbd7; // inbox selected message background (and background of selected text in those messages)
-+msgOutBg: #c9e6ff; // outbox message background
-+msgOutBgSelected: #91c2e0; // outbox selected message background (and background of selected text in those messages)
++msgOutBg: #c2e7ff; // outbox message background
++msgOutBgSelected: #9fc3da; // outbox selected message background (and background of selected text in those messages)
 +msgSelectOverlay: #0065914c; // overlay which is filling the media parts of selected messages (like in selected photo message)
 +msgStickerOverlay: #0065917f; // overlay which is filling the selected sticker message
 +msgInServiceFg: #006591; // inbox message information text (like information about a forwarded message original sender)
 +msgInServiceFgSelected: #006591; // inbox selected message information text (like information about a forwarded message original sender)
-+msgOutServiceFg: #001e2f; // outbox message information text (like information about a forwarded message original sender)
-+msgOutServiceFgSelected: #001e2f; // outbox message information text (like information about a forwarded message original sender)
++msgOutServiceFg: #004b73; // outbox message information text (like information about a forwarded message original sender)
++msgOutServiceFgSelected: #004b73; // outbox message information text (like information about a forwarded message original sender)
 +msgInShadow: #00000029; // inbox message shadow (below the bubble)
 +msgInShadowSelected: #00000029; // inbox selected message shadow (below the bubble)
 +msgOutShadow: #002d4133; // outbox message shadow (below the bubble)
 +msgOutShadowSelected: #002d4133; // outbox selected message shadow (below the bubble)
 +msgInDateFg: #73777c; // inbox message time text
 +msgInDateFgSelected: #3f89aa; // inbox selected message time text
-+msgOutDateFg: #001e2fa8; // outbox message time text
-+msgOutDateFgSelected: #001e2fa8; // outbox selected message time text
++msgOutDateFg: #004b73a8; // outbox message time text
++msgOutDateFgSelected: #004b73a8; // outbox selected message time text
 +msgServiceFg: #ffffff; // service message text (like date dividers or service message about the group title being changed)
 +msgServiceBg: #00659190; // service message background (like in a service message about group title being changed) (adjusted)
 +msgServiceBgSelected: #006591b0; // service message selected text background (like in a service message about group title being changed) (adjusted)
@@ -587,9 +588,9 @@ index e2ba0d6..ab82ab1 100644
 +msgOutReplyBarSelColor: #006591; // outbox selected message reply outline
 +msgImgReplyBarColor: #ffffff; // sticker message reply outline
 +msgInMonoFg: #0f394c; // inbox message monospace text (like a message sent with `test` text)
-+msgOutMonoFg: #003a56; // outbox message monospace text
++msgOutMonoFg: #004b73; // outbox message monospace text
 +msgInMonoFgSelected: #0f394c; // inbox message monospace text in a selected text or message
-+msgOutMonoFgSelected: #003a56; // outbox message monospace text in a selected text or message
++msgOutMonoFgSelected: #004b73; // outbox message monospace text in a selected text or message
 +msgDateImgFg: #ffffff; // media message time text (like time text in a sent photo)
  msgDateImgBg: #00000054; // media message time bubble background (like time bubble in a sent photo) or file with thumbnail download icon circle background
  msgDateImgBgOver: #00000074; // media message download icon circle background with mouse over (like file with thumbnail download icon)
@@ -904,6 +905,45 @@ index e2ba0d6..ab82ab1 100644
  
  premiumButtonBg1: #55a5ff; // upgrade to premium button gradient 1
  premiumButtonBg2: #a767ff; // upgrade to premium button gradient 2
+@@ -693,6 +693,6 @@ rankAdminFg: #49a355; // admin badge text and pill, green
+ rankOwnerFg: #956ac8; // owner badge text and pill, purple
+ rankUserFg: windowSubTextFg; // regular user badge text, gray
+ 
+-dialogsMentionIconFg: #40a7e3 | dialogsVerifiedIconBg; // chat list mention icon
++dialogsMentionIconFg: windowBgActive | dialogsVerifiedIconBg; // chat list mention icon
+ dialogsReactionIconFg: #e05356 | attentionButtonFg; // chat list reaction icon
+ dialogsPollIconFg: #997be1 | historyPeer5NameFg; // chat list poll icon
+diff --git a/ui/effects/panel_animation.cpp b/ui/effects/panel_animation.cpp
+index fd2a4d4..7ed219e 100644
+--- a/ui/effects/panel_animation.cpp
++++ b/ui/effects/panel_animation.cpp
+@@ -309,12 +309,21 @@ void PanelAnimation::setAlphaDuration() {
+ void PanelAnimation::start() {
+ 	Assert(!_finalImage.isNull());
+ 	RoundShadowAnimation::start(_finalWidth, _finalHeight, _finalImage.devicePixelRatio());
+-	auto checkCorner = [this](const Corner &corner) {
++	auto dropCorners = [this]() {
++		_topLeft = _topRight = _bottomLeft = _bottomRight = Corner();
++	};
++	auto checkCorner = [this, &dropCorners](const Corner &corner) {
+ 		if (!corner.valid()) return;
+-		if (_startWidth >= 0) Assert(corner.width <= _startWidth);
+-		if (_startHeight >= 0) Assert(corner.height <= _startHeight);
+-		Assert(corner.width <= _finalInnerWidth);
+-		Assert(corner.height <= _finalInnerHeight);
++		// m3eGram: with the large M3 radii (popup menus 20px, dropdowns
++		// 16px) the corner images (+shadow) may not fit a small panel or
++		// its scale-in start size - drop the rounding gracefully there
++		// instead of asserting and crashing the whole app.
++		if ((_startWidth >= 0 && corner.width > _startWidth)
++			|| (_startHeight >= 0 && corner.height > _startHeight)
++			|| (corner.width > _finalInnerWidth)
++			|| (corner.height > _finalInnerHeight)) {
++			dropCorners();
++		}
+ 	};
+ 	checkCorner(_topLeft);
+ 	checkCorner(_topRight);
 diff --git a/ui/layers/layer_widget.cpp b/ui/layers/layer_widget.cpp
 index f8b1aa6..6b88abc 100644
 --- a/ui/layers/layer_widget.cpp

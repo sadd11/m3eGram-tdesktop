@@ -9140,4 +9140,18 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_tgw_copied" = "Copied: {text}";
 "lng_in_dlg_widget" = "Widget";
 
+// m3eGram: plugins (exteraGram-style user plugin system)
+"lng_m3e_plugins_title" = "Плагины";
+"lng_m3e_plugins_open_folder" = "Открыть папку плагинов";
+"lng_m3e_plugins_reload" = "Перезагрузить плагины";
+"lng_m3e_plugins_reload_done" = "Плагины перезагружены";
+"lng_m3e_plugins_convert" = "Конвертировать exteraGram-плагин (.py)";
+"lng_m3e_plugins_install" = "Установить плагин из файла…";
+"lng_m3e_plugins_installed" = "Плагин установлен";
+"lng_m3e_plugins_install_failed" = "Не удалось установить плагин";
+"lng_m3e_plugins_empty" = "Плагины не найдены.\nСкопируйте .js файлы в папку плагинов и нажмите «Перезагрузить плагины».";
+"lng_m3e_plugins_available" = "Доступные плагины";
+"lng_m3e_plugins_back" = "Назад";
+"lng_m3e_plugins_load_error" = "Ошибка загрузки";
+
 // Keys finished

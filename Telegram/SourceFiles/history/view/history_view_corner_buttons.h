@@ -93,6 +93,9 @@ public:
 	void updateUnreadThingsVisibility();
 	void updateJumpDownVisibility(std::optional<int> counter = {});
 	void updatePositions();
+	// m3eGram: the scroll area is full-height, the buttons anchor above the
+	// compose stack instead of the scroll bottom edge.
+	void setBottomInset(int inset);
 
 	[[nodiscard]] rpl::producer<> stashClicks() const;
 	void setStashMenuFiller(Fn<void(not_null<Ui::PopupMenu*>)> filler);
@@ -130,6 +133,7 @@ private:
 	const not_null<QWidget*> _parent;
 	const Fn<bool(QEvent*)> _scrollViewportEvent;
 	const not_null<CornerButtonsDelegate*> _delegate;
+	int _bottomInset = 0; // m3eGram: compose stack height below the list.
 
 	rpl::lifetime _stLifetime;
 

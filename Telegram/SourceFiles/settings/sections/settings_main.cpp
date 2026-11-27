@@ -61,6 +61,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "settings/sections/settings_notifications.h"
 #include "settings/settings_power_saving.h"
 #include "settings/sections/settings_premium.h"
+#include "settings/sections/settings_plugins.h" // m3eGram
 #include "settings/sections/settings_privacy_security.h"
 #include "settings/settings_scale_preview.h"
 #include "storage/localstorage.h"
@@ -514,6 +515,28 @@ void BuildInterfaceScale(SectionBuilder &builder) {
 	builder.addSkip();
 }
 
+// m3eGram: user plugins section (exteraGram-style plugin system).
+void BuildPluginsSection(SectionBuilder &builder) {
+	builder.addDivider();
+	builder.addSkip();
+
+	builder.addSectionButton({
+		.id = u"main/plugins"_q,
+		.title = tr::lng_m3e_plugins_title(),
+		.targetSection = PluginsId(),
+		.icon = { &st::menuIconManage },
+		.keywords = {
+			u"plugins"_q,
+			u"plugin"_q,
+			u"плагины"_q,
+			u"расширения"_q,
+			u"extera"_q,
+		},
+	});
+
+	builder.addSkip();
+}
+
 void BuildPremiumSection(SectionBuilder &builder) {
 	const auto session = builder.session();
 	const auto controller = builder.controller();
@@ -774,6 +797,7 @@ void Main::setupContent() {
 		BuildSectionButtons(builder);
 		builder.addSkip();
 		BuildInterfaceScale(builder);
+		BuildPluginsSection(builder); // m3eGram: user plugins.
 		BuildPremiumSection(builder);
 		BuildHelpSection(builder);
 

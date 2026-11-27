@@ -48,6 +48,8 @@ namespace HistoryView {
 namespace {
 
 constexpr auto kDefaultLimit = 12;
+// m3eGram: translucent tint over the frosted tabs backdrop.
+constexpr auto kPanelBackdropTintAlpha = 185;
 
 } // namespace
 
@@ -105,6 +107,7 @@ void SubsectionTabs::setupHorizontal(
 	widgetRef = Ui::CreateChild<Ui::RpWidget>(parent);
 	widgetRef->show();
 	const auto widget = widgetRef;
+	setupBackdrop(widget); // m3eGram
 
 	if (!_shadow) {
 		_shadow = Ui::CreateChild<Ui::PlainShadow>(parent);
@@ -171,11 +174,12 @@ void SubsectionTabs::setupHorizontal(
 		auto p = QPainter(widget);
 
 		const auto line = st::lineWidth;
-		p.fillRect(
+		paintBackdrop(
+			p,
+			widget,
 			clip.intersected(
 				widget->rect().marginsRemoved(
-					{ 0, bottom ? line : 0, 0, bottom ? 0 : line })),
-			st::windowBg);
+					{ 0, bottom ? line : 0, 0, bottom ? 0 : line })));
 		if (bottom) {
 			const auto shadow = QRect(
 				0,
@@ -198,6 +202,7 @@ void SubsectionTabs::setupVertical(not_null<QWidget*> parent) {
 	delete base::take(_bottom);
 	_vertical = Ui::CreateChild<Ui::RpWidget>(parent);
 	_vertical->show();
+	setupBackdrop(_vertical); // m3eGram
 
 	if (!_shadow) {
 		_shadow = Ui::CreateChild<Ui::PlainShadow>(parent);
@@ -245,7 +250,8 @@ void SubsectionTabs::setupVertical(not_null<QWidget*> parent) {
 	}, scroll->lifetime());
 
 	_vertical->paintRequest() | rpl::on_next([=](QRect clip) {
-		QPainter(_vertical).fillRect(clip, st::windowBg);
+		auto p = QPainter(_vertical);
+		paintBackdrop(p, _vertical, clip);
 	}, _vertical->lifetime());
 
 	_layoutRequests.fire({});
@@ -740,6 +746,46 @@ int SubsectionTabs::topSkip() const {
 
 int SubsectionTabs::bottomSkip() const {
 	return _bottom ? (_bottom->height() - st::lineWidth) : 0;
+}
+
+void SubsectionTabs::setupBackdrop(not_null<Ui::RpWidget*> widget) {
+	// m3eGram: frosted backdrop of the list under the tabs.
+	if (_backdropFactory) {
+		_backdrop.setCapture(widget, [=] {
+			return _backdropFactory
+				? _backdropFactory(widget)
+				: QImage();
+		});
+	} else {
+		_backdrop.setCapture(widget, nullptr);
+	}
+}
+
+void SubsectionTabs::paintBackdrop(QPainter &p, QWidget *widget, QRect clip) {
+	if (_backdrop.ensureStarted()) {
+		_backdrop.paint(p);
+		auto tint = st::windowBg->c;
+		tint.setAlpha(kPanelBackdropTintAlpha);
+		p.fillRect(clip, tint);
+	} else {
+		p.fillRect(clip, st::windowBg);
+	}
+}
+
+void SubsectionTabs::setBackdropFactory(
+		Fn<QImage(not_null<QWidget*> panel)> factory) {
+	_backdropFactory = std::move(factory);
+	if (const auto widget = activeWidget()) {
+		setupBackdrop(widget);
+		widget->update();
+	}
+}
+
+void SubsectionTabs::invalidateBackdrop() {
+	_backdrop.invalidate();
+	if (const auto widget = activeWidget()) {
+		widget->update();
+	}
 }
 
 void SubsectionTabs::raise() {

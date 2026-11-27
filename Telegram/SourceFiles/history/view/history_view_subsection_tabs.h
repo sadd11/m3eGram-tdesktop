@@ -9,6 +9,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "base/unique_qptr.h"
 #include "dialogs/dialogs_common.h"
+#include "ui/effects/panel_backdrop.h" // m3eGram
 
 class History;
 
@@ -71,6 +72,11 @@ public:
 	void show();
 	void hide();
 
+	// m3eGram: frosted backdrop of the list under the translucent tabs.
+	// The factory renders the content underneath the given panel widget.
+	void setBackdropFactory(Fn<QImage(not_null<QWidget*> panel)> factory);
+	void invalidateBackdrop();
+
 private:
 	struct Item {
 		not_null<Data::Thread*> thread;
@@ -105,6 +111,9 @@ private:
 		not_null<Ui::ScrollArea*> scroll,
 		not_null<Ui::SubsectionSlider*> slider,
 		bool vertical);
+	// m3eGram: frosted backdrop of the list under the translucent tabs.
+	void setupBackdrop(not_null<Ui::RpWidget*> widget);
+	void paintBackdrop(QPainter &p, QWidget *widget, QRect clip);
 	void startScrollChecking(
 		not_null<Ui::ScrollArea*> scroll,
 		not_null<Ui::SubsectionSlider*> slider,
@@ -147,6 +156,10 @@ private:
 	rpl::event_stream<> _layoutRequests;
 	rpl::event_stream<> _refreshed;
 	rpl::event_stream<> _scrollCheckRequests;
+
+	// m3eGram: frosted backdrop of the list under the translucent tabs.
+	Ui::PanelBackdrop _backdrop;
+	Fn<QImage(not_null<QWidget*> panel)> _backdropFactory;
 
 	rpl::lifetime _lifetime;
 

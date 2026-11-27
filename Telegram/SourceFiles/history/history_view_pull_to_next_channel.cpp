@@ -1047,19 +1047,34 @@ bool PullToNextChannel::hintVisible() const {
 	return _holding && (_pull > 0.);
 }
 
+void PullToNextChannel::setBottomInset(int inset) {
+	if (_bottomInset == inset) {
+		return;
+	}
+	_bottomInset = inset;
+	updateGeometry();
+}
+
 void PullToNextChannel::updateGeometry() {
 	const auto height = st::historyPullNextMaxHeight;
+	// m3eGram: the scroll area is full-height, anchor above the compose
+	// stack (reserved as the bottom inset) instead of its edge.
+	const auto bottom = _scroll->height() - _bottomInset;
 	_indicator->setGeometry(
 		0,
-		_scroll->height() - height,
+		bottom - height,
 		_scroll->width(),
 		height);
 	_indicator->raise();
 
-	const auto top = _scroll->y() + _scroll->height();
-	const auto bottom = _parent->height();
-	if (bottom > top) {
-		_hint->setGeometry(_scroll->x(), top, _scroll->width(), bottom - top);
+	const auto top = _scroll->y() + bottom;
+	const auto hintBottom = _parent->height();
+	if (hintBottom > top) {
+		_hint->setGeometry(
+			_scroll->x(),
+			top,
+			_scroll->width(),
+			hintBottom - top);
 		_hint->raise();
 	}
 }

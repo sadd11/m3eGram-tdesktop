@@ -579,6 +579,8 @@ PRIVATE
     ui/effects/ministar_particles.h
     ui/effects/outline_segments.cpp
     ui/effects/outline_segments.h
+    ui/effects/panel_backdrop.cpp
+    ui/effects/panel_backdrop.h
     ui/effects/premium_3d_cover.cpp
     ui/effects/premium_3d_cover.h
     ui/effects/premium_3d_mesh.cpp

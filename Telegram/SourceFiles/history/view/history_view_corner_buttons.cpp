@@ -525,6 +525,14 @@ void CornerButtons::updateJumpDownVisibility(std::optional<int> counter) {
 	}
 }
 
+void CornerButtons::setBottomInset(int inset) {
+	if (_bottomInset == inset) {
+		return;
+	}
+	_bottomInset = inset;
+	updatePositions();
+}
+
 void CornerButtons::updatePositions() {
 	const auto checkVisibility = [](CornerButton &button) {
 		const auto shouldBeHidden = !button.shown
@@ -539,6 +547,9 @@ void CornerButtons::updatePositions() {
 
 	// All corner buttons is a child widgets of _column over _scroll, not me.
 
+	// m3eGram: the scroll area is full-height, anchor the buttons above the
+	// compose stack (reserved as the bottom inset) instead of its edge.
+	const auto bottom = _parent->height() - _bottomInset;
 	const auto columnWidth = st::historyToDown.width
 		+ 2 * st::historyToDownPosition.x();
 	_column.resize(columnWidth, _parent->height());
@@ -557,7 +568,7 @@ void CornerButtons::updatePositions() {
 			historyDownShown);
 		_down.widget->moveToRight(
 			st::historyToDownPosition.x(),
-			_parent->height() - top);
+			bottom - top);
 	}
 	{
 		const auto right = anim::interpolate(
@@ -568,7 +579,7 @@ void CornerButtons::updatePositions() {
 			0,
 			_down.widget->height() + skip,
 			historyDownShown);
-		const auto top = _parent->height()
+		const auto top = bottom
 			- _mentions.widget->height()
 			- st::historyToDownPosition.y()
 			- shift;
@@ -587,7 +598,7 @@ void CornerButtons::updatePositions() {
 			0,
 			_mentions.widget->height() + skip,
 			unreadMentionsShown);
-		const auto top = _parent->height()
+		const auto top = bottom
 			- _reactions.widget->height()
 			- st::historyToDownPosition.y()
 			- shift;
@@ -610,7 +621,7 @@ void CornerButtons::updatePositions() {
 				0,
 				_reactions.widget->height() + skip,
 				unreadReactionsShown);
-		const auto top = _parent->height()
+		const auto top = bottom
 			- _pollVotes.widget->height()
 			- st::historyToDownPosition.y()
 			- shift;
@@ -636,8 +647,8 @@ void CornerButtons::updatePositions() {
 			+ anim::interpolate(
 				0,
 				_pollVotes.widget->height() + skip,
-				unreadPollVotesShown);
-		const auto top = _parent->height()
+				unreadReactionsShown);
+		const auto top = bottom
 			- _stash.widget->height()
 			- st::historyToDownPosition.y()
 			- shift;

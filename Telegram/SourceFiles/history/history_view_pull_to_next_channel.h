@@ -44,6 +44,9 @@ public:
 	void setTopic(Data::ForumTopic *topic);
 	void reset(anim::type animated);
 	void updateGeometry();
+	// m3eGram: the scroll area is full-height, the indicator and the hint
+	// anchor above the compose stack instead of the scroll bottom edge.
+	void setBottomInset(int inset);
 
 private:
 	enum class Mode {
@@ -79,6 +82,7 @@ private:
 	const base::unique_qptr<HintOverlay> _hint;
 
 	Mode _mode = Mode::None;
+	int _bottomInset = 0; // m3eGram: compose stack height below the list.
 	base::weak_ptr<History> _history;
 	base::weak_ptr<History> _next;
 	base::weak_ptr<Data::ForumTopic> _topic;

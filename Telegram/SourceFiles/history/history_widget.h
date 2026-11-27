@@ -90,6 +90,7 @@ class SendAsButton;
 class SpoilerAnimation;
 class ChooseThemeController;
 class ElasticScroll;
+class PanelBackdropWidget;
 struct ChatPaintHighlight;
 class ChatStyle;
 struct MessageSendingReveal;
@@ -368,6 +369,10 @@ public:
 	void synteticScrollToY(int y);
 
 private:
+	// m3eGram: renders the chat wallpaper and the message list pixels under
+	// a panel rect (in widget coordinates) for the frosted panel backdrops.
+	[[nodiscard]] QImage capturePanelBackdrop(QRect rect);
+
 	using TabbedPanel = ChatHelpers::TabbedPanel;
 	using TabbedSelector = ChatHelpers::TabbedSelector;
 	using VoiceToSend = HistoryView::Controls::VoiceToSend;
@@ -916,6 +921,10 @@ private:
 	HistoryView::CornerButtons _cornerButtons;
 	std::unique_ptr<HistoryView::PullToNextChannel> _pullToNext;
 
+	// m3eGram: frosted compose block (field row + reply strip) overlaying
+	// the full-height list.
+	std::unique_ptr<Ui::PanelBackdropWidget> _composeBackdrop;
+
 	std::unique_ptr<ChatHelpers::FieldAutocomplete> _autocomplete;
 	std::unique_ptr<Ui::Emoji::SuggestionsController> _emojiSuggestions;
 	object_ptr<Support::Autocomplete> _supportAutocomplete;
@@ -1046,6 +1055,11 @@ private:
 	bool _inGrab = false;
 
 	int _topDelta = 0;
+
+	// m3eGram: heights of the panels overlaying the full-height scroll area,
+	// reserved as list viewport insets instead of shrinking the scroll.
+	int _listTopInset = 0;
+	int _listBottomInset = 0;
 
 	SendPaymentHelper _sendPayment;
 

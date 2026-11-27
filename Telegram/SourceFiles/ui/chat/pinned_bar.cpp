@@ -9,6 +9,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "ui/chat/message_bar.h"
 #include "ui/effects/spoiler_mess.h"
+#include "ui/painter.h"
 #include "ui/widgets/shadow.h"
 #include "ui/widgets/buttons.h"
 #include "ui/wrap/fade_wrap.h"
@@ -18,6 +19,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include <QtGui/QtEvents>
 
 namespace Ui {
+
+// m3eGram: translucent tint over the frosted pinned bar backdrop.
+constexpr auto kPanelBackdropTintAlpha = 185;
 
 PinnedBar::PinnedBar(
 	not_null<QWidget*> parent,
@@ -39,7 +43,16 @@ PinnedBar::PinnedBar(
 
 	_wrap.entity()->paintRequest(
 	) | rpl::on_next([=](QRect clip) {
-		QPainter(_wrap.entity()).fillRect(clip, st::historyPinnedBg);
+		auto p = Painter(_wrap.entity());
+		if (_backdrop.ensureStarted()) {
+			// m3eGram: frosted backdrop of the list under the bar.
+			_backdrop.paint(p);
+			auto tint = st::historyPinnedBg->c;
+			tint.setAlpha(kPanelBackdropTintAlpha);
+			p.fillRect(clip, tint);
+		} else {
+			p.fillRect(clip, st::historyPinnedBg);
+		}
 	}, lifetime());
 	_wrap.setAttribute(Qt::WA_OpaquePaintEvent);
 
@@ -54,6 +67,29 @@ PinnedBar::PinnedBar(
 
 PinnedBar::~PinnedBar() {
 	_right.button.destroy();
+}
+
+void PinnedBar::setBackdropFactory(
+		Fn<QImage(not_null<QWidget*> panel)> factory) {
+	// m3eGram: frosted backdrop of the list under the bar.
+	_backdropFactory = std::move(factory);
+	if (_backdropFactory) {
+		_wrap.entity()->setAttribute(Qt::WA_OpaquePaintEvent, false);
+		_backdrop.setCapture(_wrap.entity(), [=] {
+			return _backdropFactory
+				? _backdropFactory(_wrap.entity())
+				: QImage();
+		});
+	} else {
+		_backdrop.setCapture(_wrap.entity(), nullptr);
+		_wrap.entity()->setAttribute(Qt::WA_OpaquePaintEvent, true);
+	}
+	_wrap.entity()->update();
+}
+
+void PinnedBar::invalidateBackdrop() {
+	_backdrop.invalidate();
+	_wrap.entity()->update();
 }
 
 void PinnedBar::setContent(rpl::producer<Ui::MessageBarContent> content) {

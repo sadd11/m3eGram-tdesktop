@@ -177,6 +177,9 @@ public:
 	void setItemsRevealHeight(int revealHeight);
 	void changeItemsRevealHeight(int revealHeight);
 	void checkActivation();
+	// m3eGram: panels overlay the full-height scroll area, their heights are
+	// reserved as content margins instead of shrinking the viewport.
+	void setViewportInsets(int top, int bottom);
 	void recountHistoryGeometry(bool initial = false);
 	void updateSize();
 	void setShownPinned(HistoryItem *item);
@@ -614,6 +617,10 @@ private:
 	int _contentWidth = 0;
 	int _historyMarginTop = 0;
 	int _historyMarginBottom = 0;
+	// m3eGram: heights of the panels overlaying the full-height scroll area
+	// (top bar stack above, compose stack below) reserved as content margins.
+	int _viewportTopInset = 0;
+	int _viewportBottomInset = 0;
 	int _revealHeight = 0;
 	int _forumThreadBarWidth = 0;
 	Ui::PeerUserpicView _forumThreadBarUserpicView;

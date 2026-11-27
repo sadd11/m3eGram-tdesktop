@@ -50,6 +50,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/effects/ripple_animation.h"
 #include "ui/effects/message_sending_animation_controller.h"
 #include "ui/effects/message_sending_text_flight.h"
+#include "ui/effects/panel_backdrop.h" // m3eGram
 #include "ui/text/format_values.h"
 #include "ui/text/text_utilities.h"
 #include "ui/chat/message_bar.h"
@@ -222,6 +223,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_info.h"
 #include "styles/style_iv.h"
 #include "styles/style_layers.h"
+#include "ui/style/style_palette.h" // m3eGram
 
 #include <QtGui/QWindow>
 #include <QtCore/QMimeData>
@@ -244,6 +246,8 @@ constexpr auto kCommonModifiers = 0
 	| Qt::ShiftModifier
 	| Qt::MetaModifier
 	| Qt::ControlModifier;
+// m3eGram: translucent tint over the frosted panel backdrops.
+constexpr auto kPanelBackdropTintAlpha = 185;
 const auto kPsaAboutPrefix = "cloud_lng_about_psa_";
 
 [[nodiscard]] rpl::producer<PeerData*> ActivePeerValue(
@@ -291,6 +295,9 @@ HistoryWidget::HistoryWidget(
 	this,
 	_scroll.data(),
 	controller))
+// m3eGram: frosted compose block over the full-height list; created right
+// after _scroll (below all the compose controls created later).
+, _composeBackdrop(std::make_unique<Ui::PanelBackdropWidget>(this))
 , _supportAutocomplete(session().supportMode()
 	? object_ptr<Support::Autocomplete>(this, &session())
 	: nullptr)
@@ -395,6 +402,36 @@ HistoryWidget::HistoryWidget(
 
 	session().downloaderTaskFinished() | rpl::on_next([=] {
 		update();
+	}, lifetime());
+
+	// m3eGram: frosted compose block over the full-height list.
+	_composeBackdrop->setTint(
+		st::historyComposeAreaBg,
+		kPanelBackdropTintAlpha);
+	_composeBackdrop->setCapture([=] {
+		return capturePanelBackdrop(_composeBackdrop->geometry());
+	});
+	_composeBackdrop->setContentPainter([=](Painter &p, QRect clip) {
+		drawField(p, clip);
+	});
+	// m3eGram: frosted top bar over the full-height list.
+	_topBar->setBackdropCapture([=] {
+		return capturePanelBackdrop(_topBar->geometry());
+	});
+	style::PaletteChanged(
+	) | rpl::on_next([=] {
+		_composeBackdrop->invalidate();
+		_topBar->invalidateBackdrop();
+	}, lifetime());
+	_scroll->scrolls() | rpl::on_next([=] {
+		_composeBackdrop->invalidate();
+		_topBar->invalidateBackdrop();
+		if (_subsectionTabs) {
+			_subsectionTabs->invalidateBackdrop();
+		}
+		if (const auto pinned = visiblePinnedBar()) {
+			pinned->invalidateBackdrop();
+		}
 	}, lifetime());
 
 	_scroll->setHandleTouch(false);
@@ -2222,6 +2259,11 @@ void HistoryWidget::applyInlineBotQuery(UserData *bot, const QString &query) {
 }
 
 void HistoryWidget::orderWidgets() {
+	// m3eGram: the full-height scroll is created after the top bar, raise it
+	// above the list so the translucent top bar overlays the scrolled list.
+	_topBar->raise();
+	// m3eGram: the reply strip cancel button is created before _scroll too.
+	_fieldBarCancel->raise();
 	_voiceRecordBar->raise();
 	_send->raise();
 	_aiButton->raise();
@@ -6110,7 +6152,9 @@ void HistoryWidget::sendTextWithTags(
 				&& _historyInited
 				&& _history->loadedAtBottom()
 				&& _scroll->scrollTop() >= _scroll->scrollTopMax()) {
-				wasScrollBottom = _scroll->y() + _scroll->height();
+				// m3eGram: the scroll bottom is fixed now, the old
+				// scrollBottom equivalent is height() - bottomInset.
+				wasScrollBottom = height() - _listBottomInset;
 			}
 			controller()->sendingAnimation().appendSending(std::move(*from));
 		}
@@ -6141,7 +6185,9 @@ void HistoryWidget::sendTextWithTags(
 			? Data::HistoryUpdate::Flag::ScheduledSent
 			: Data::HistoryUpdate::Flag::MessageSent));
 	if (wasScrollBottom) {
-		const auto lift = _scroll->y() + _scroll->height() - *wasScrollBottom;
+		// m3eGram: the scroll bottom is fixed now, the old scrollBottom
+		// equivalent is height() - bottomInset.
+		const auto lift = (height() - _listBottomInset) - *wasScrollBottom;
 		const auto item = session().data().message(
 			_history->peer,
 			nextLocalMessageId);
@@ -7768,6 +7814,36 @@ void HistoryWidget::moveFieldControls() {
 	if (_sendRestriction) {
 		_sendRestriction->setGeometry(fullWidthButtonRect);
 	}
+
+	// m3eGram: the frosted compose block overlays the full-height list, so
+	// it spans from the top of the reply/forward/edit strip down to the
+	// bottom of the field row (the bot keyboard below keeps its own fill).
+	const auto composeShown = !isSearching()
+		&& (fieldOrDisabledShown()
+			|| isRecording()
+			|| replyTo()
+			|| readyToForward()
+			|| _kbShown
+			|| _suggestOptions);
+	const auto replyStrip = (_editMsgId
+		|| replyTo()
+		|| readyToForward()
+		|| _previewDrawPreview
+		|| _suggestOptions)
+		? st::historyReplyHeight
+		: 0;
+	_composeBackdrop->setVisible(composeShown);
+	if (composeShown) {
+		const auto blockTop = bottom
+			- fieldHeight()
+			- 2 * st::historySendPadding
+			- replyStrip;
+		_composeBackdrop->setGeometryToLeft(
+			0,
+			blockTop,
+			width(),
+			bottom - blockTop);
+	}
 }
 
 void HistoryWidget::updateFieldSize() {
@@ -8438,14 +8514,16 @@ void HistoryWidget::updateControlsGeometry() {
 	_topBars->resize(
 		innerWidth,
 		scrollAreaTop - _topBars->y() + st::lineWidth);
-	if (_scroll->y() != scrollAreaTop || _scroll->x() != tabsLeftSkip) {
-		_scroll->moveToLeft(tabsLeftSkip, scrollAreaTop);
-		if (_autocomplete) {
-			_autocomplete->setBoundings(_scroll->geometry());
-		}
-		if (_supportAutocomplete) {
-			_supportAutocomplete->setBoundings(_scroll->geometry());
-		}
+	// m3eGram: the scroll area spans the whole widget so the message list
+	// scrolls under the translucent panels; the panel heights are reserved
+	// as list viewport insets in updateHistoryGeometry() instead.
+	const auto scrollGeometry = QRect(
+		tabsLeftSkip,
+		0,
+		innerWidth,
+		height());
+	if (_scroll->geometry() != scrollGeometry) {
+		_scroll->setGeometry(scrollGeometry);
 	}
 
 	updateHistoryGeometry(
@@ -8455,7 +8533,9 @@ void HistoryWidget::updateControlsGeometry() {
 
 	updateFieldSize();
 
+	_cornerButtons.setBottomInset(_listBottomInset);
 	_cornerButtons.updatePositions();
+	_pullToNext->setBottomInset(_listBottomInset);
 	_pullToNext->updateGeometry();
 
 	if (_membersDropdown) {
@@ -8692,37 +8772,41 @@ void HistoryWidget::updateHistoryGeometry(
 
 	const auto newScrollWidth = width()
 		- (_subsectionTabs ? _subsectionTabs->leftSkip() : 0);
+	// m3eGram: the scroll area is full-height now, the heights of all panels
+	// overlaying it become list viewport insets instead of shrinking the
+	// viewport. The math below mirrors the old scroll-height subtractions
+	// one-to-one: topInset == the old scrollAreaTop, bottomInset == the old
+	// sum subtracted from the scroll height.
 	const auto subsectionTabsTop = _topBar->bottomNoMargins();
-	auto newScrollHeight = height()
-		- subsectionTabsTop
-		- (_subsectionTabs ? _subsectionTabs->topSkip() : 0)
-		- (_subsectionTabs ? _subsectionTabs->bottomSkip() : 0);
+	auto topInset = subsectionTabsTop
+		+ (_subsectionTabs ? _subsectionTabs->topSkip() : 0);
 	if (_translateBar) {
-		newScrollHeight -= _translateBar->height();
+		topInset += _translateBar->height();
 	}
 	if (_sponsoredMessageBar) {
-		newScrollHeight -= _sponsoredMessageBar->height();
+		topInset += _sponsoredMessageBar->height();
 	}
 	if (const auto pinnedBar = visiblePinnedBar()) {
-		newScrollHeight -= pinnedBar->height();
+		topInset += pinnedBar->height();
 	}
 	if (_groupCallBar) {
-		newScrollHeight -= _groupCallBar->height();
+		topInset += _groupCallBar->height();
 	}
 	if (_requestsBar) {
-		newScrollHeight -= _requestsBar->height();
+		topInset += _requestsBar->height();
 	}
 	if (_paysStatus) {
-		newScrollHeight -= _paysStatus->bar().height();
+		topInset += _paysStatus->bar().height();
 	}
 	if (_contactStatus) {
-		newScrollHeight -= _contactStatus->bar().height();
+		topInset += _contactStatus->bar().height();
 	}
 	if (_businessBotStatus) {
-		newScrollHeight -= _businessBotStatus->bar().height();
+		topInset += _businessBotStatus->bar().height();
 	}
+	auto bottomInset = 0;
 	if (isChoosingTheme()) {
-		newScrollHeight -= _chooseTheme->height();
+		bottomInset += _chooseTheme->height();
 	} else if (!editingMessage()
 		&& (isSearching()
 			|| isBlocked()
@@ -8730,33 +8814,40 @@ void HistoryWidget::updateHistoryGeometry(
 			|| isJoinChannel()
 			|| isMuteUnmute()
 			|| isReportMessages())) {
-		newScrollHeight -= _unblock->height();
+		bottomInset += _unblock->height();
 	} else {
 		if (editingMessage() || _canSendMessages) {
-			newScrollHeight -= (fieldHeight() + 2 * st::historySendPadding);
+			bottomInset += (fieldHeight() + 2 * st::historySendPadding);
 		} else if (_sendRestriction) {
-			newScrollHeight -= _sendRestriction->height();
+			bottomInset += _sendRestriction->height();
 		}
 		if (_editMsgId
 			|| replyTo()
 			|| readyToForward()
 			|| _previewDrawPreview
 			|| _suggestOptions) {
-			newScrollHeight -= st::historyReplyHeight;
+			bottomInset += st::historyReplyHeight;
 		}
 		if (_kbShown) {
-			newScrollHeight -= _kbScroll->height();
+			bottomInset += _kbScroll->height();
 		}
 	}
-	if (newScrollHeight <= 0) {
+	if (topInset + bottomInset >= height()) {
 		return;
+	}
+	const auto insetsChanged = (_listTopInset != topInset)
+		|| (_listBottomInset != bottomInset);
+	_listTopInset = topInset;
+	_listBottomInset = bottomInset;
+	if (_list) {
+		_list->setViewportInsets(topInset, bottomInset);
 	}
 	const auto wasScrollTop = _scroll->scrollTop();
 	const auto wasAtBottom = (wasScrollTop >= _scroll->scrollTopMax());
 	const auto needResize = (_scroll->width() != newScrollWidth)
-		|| (_scroll->height() != newScrollHeight);
+		|| (_scroll->height() != height());
 	if (needResize) {
-		_scroll->resize(newScrollWidth, newScrollHeight);
+		_scroll->resize(newScrollWidth, height());
 		// on initial updateListSize we didn't put the _scroll->scrollTop
 		// correctly yet so visibleAreaUpdated() call will erase it
 		// with the new (undefined) value
@@ -8764,21 +8855,25 @@ void HistoryWidget::updateHistoryGeometry(
 			visibleAreaUpdated();
 		}
 	}
-	if (needResize || initial) {
+	if (needResize || initial || insetsChanged) {
+		const auto boundings = _scroll->geometry().marginsRemoved(
+			{ 0, topInset, 0, bottomInset });
 		if (_autocomplete) {
-			_autocomplete->setBoundings(_scroll->geometry());
+			_autocomplete->setBoundings(boundings);
 		}
 		if (_supportAutocomplete) {
-			_supportAutocomplete->setBoundings(_scroll->geometry());
+			_supportAutocomplete->setBoundings(boundings);
 		}
+		_cornerButtons.setBottomInset(bottomInset);
 		_cornerButtons.updatePositions();
 		controller()->floatPlayerAreaUpdated();
 	}
 	if (_subsectionTabs) {
-		const auto tabsBottomSkip = _subsectionTabs->bottomSkip();
-		const auto scrollBottom = _scroll->y() + newScrollHeight;
-		const auto areaHeight = scrollBottom
-			+ tabsBottomSkip
+		// m3eGram: same effective geometry as before (scroll bottom plus
+		// bottomSkip used to end at height() - bottomInset), only now the
+		// full-height list scrolls under the tabs strips as well.
+		const auto areaHeight = height()
+			- bottomInset
 			- subsectionTabsTop;
 		_subsectionTabs->setBoundingRect(
 			{ 0, subsectionTabsTop, width(), areaHeight });
@@ -9070,6 +9165,8 @@ bool HistoryWidget::updateListSize(const Tgw::ScrollSnapshot *restore) {
 	if (washidden) {
 		_scroll->hide();
 	}
+	// m3eGram: the list pixels under the frosted panels have changed.
+	_composeBackdrop->invalidate();
 	_updateHistoryGeometryRequired = true;
 	return Tgw::ListScroll::Keep(this, restore ? *restore : direct);
 }
@@ -9886,6 +9983,11 @@ void HistoryWidget::checkPinnedBarState() {
 		return controller()->isGifPausedAtLeastFor(
 			Window::GifPauseReason::Any);
 	}, controller()->gifPauseLevelChanged());
+	// m3eGram: frosted backdrop of the list under the pinned bar.
+	_pinnedBar->setBackdropFactory([=](not_null<QWidget*> panel) {
+		return capturePanelBackdrop(
+			QRect(panel->mapTo(this, QPoint()), panel->size()));
+	});
 	auto pinnedRefreshed = Info::Profile::SharedMediaCountValue(
 		_peer,
 		MsgId(0), // topicRootId
@@ -10554,6 +10656,11 @@ void HistoryWidget::validateSubsectionTabs() {
 			this,
 			_history);
 	}
+	// m3eGram: frosted backdrop of the list under the topics tabs.
+	_subsectionTabs->setBackdropFactory([=](not_null<QWidget*> panel) {
+		return capturePanelBackdrop(
+			QRect(panel->mapTo(this, QPoint()), panel->size()));
+	});
 	_subsectionTabs->removeRequests() | rpl::on_next([=] {
 		_subsectionTabsLifetime.destroy();
 		_subsectionTabs = nullptr;
@@ -11490,7 +11597,9 @@ void HistoryWidget::updateField() {
 		return;
 	}
 	_repaintFieldScheduled = true;
-	const auto fieldAreaTop = _scroll->y() + _scroll->height();
+	// m3eGram: the compose block top is measured from the widget bottom via
+	// the reserved bottom inset (the scroll now spans the whole widget).
+	const auto fieldAreaTop = height() - _listBottomInset;
 	rtlupdate(0, fieldAreaTop, width(), height() - fieldAreaTop);
 }
 
@@ -11512,7 +11621,10 @@ void HistoryWidget::drawField(Painter &p, const QRect &rect) {
 	}
 	p.setInactive(
 		controller()->isGifPausedAtLeastFor(Window::GifPauseReason::Any));
-	p.fillRect(myrtlrect(0, backy, width(), backh), st::historyReplyBg);
+	// m3eGram: translucent reply strip over the frosted compose block.
+	auto replyBg = st::historyReplyBg->c;
+	replyBg.setAlpha(kPanelBackdropTintAlpha);
+	p.fillRect(myrtlrect(0, backy, width(), backh), replyBg);
 
 	const auto media = (!_previewDrawPreview && drawMsgText)
 		? drawMsgText->media()
@@ -11778,6 +11890,61 @@ bool HistoryWidget::paintShowAnimationFrame() {
 	return false;
 }
 
+QImage HistoryWidget::capturePanelBackdrop(QRect rect) {
+	// m3eGram: backdrop source for the frosted panels. Renders the chat
+	// wallpaper (exactly the way HistoryWidget::paintEvent does) and the
+	// message list pixels under the panel rect. Runs on the main thread
+	// from the LayerBackdrop debounced cache path, so it is throttled.
+	if (!_history
+		|| !_list
+		|| _showAnimation
+		|| rect.isEmpty()
+		|| rect.width() > width()
+		|| rect.height() > height()) {
+		return QImage();
+	}
+	SendPendingMoveResizeEvents(this);
+	const auto ratio = style::DevicePixelRatio();
+	auto image = QImage(
+		rect.size() * ratio,
+		QImage::Format_ARGB32_Premultiplied);
+	if (image.isNull()) {
+		return QImage();
+	}
+	image.setDevicePixelRatio(ratio);
+	image.fill(st::windowBg->c);
+	auto p = QPainter(&image);
+
+	// Chat wallpaper. The background state is painted translated by
+	// backgroundFromY (see SectionWidget::PaintBackground widget overload);
+	// here the transform maps the panel rect to the image origin.
+	const auto fromy = controller()->content()->backgroundFromY();
+	const auto fillHeight = controller()->content()->height();
+	p.save();
+	p.translate(-rect.x(), fromy - rect.y());
+	Window::SectionWidget::PaintBackground(
+		p,
+		controller()->currentChatTheme(),
+		QSize(width(), fillHeight),
+		rect.translated(0, -fromy),
+		controller()->isGifPausedAtLeastFor(Window::GifPauseReason::Any));
+	p.restore();
+
+	// Message list pixels (the scroll spans the whole widget now).
+	const auto scrollPos = _scroll->pos();
+	const auto part = rect.intersected(QRect(scrollPos, _scroll->size()));
+	if (!part.isEmpty()) {
+		Ui::RenderWidget(
+			p,
+			_scroll.data(),
+			part.topLeft() - rect.topLeft(),
+			part.translated(-scrollPos),
+			QWidget::DrawChildren);
+	}
+	p.end();
+	return image;
+}
+
 void HistoryWidget::paintEvent(QPaintEvent *e) {
 	if (paintShowAnimationFrame()
 		|| controller()->contentOverlapped(this, e)) {
@@ -11793,21 +11960,11 @@ void HistoryWidget::paintEvent(QPaintEvent *e) {
 		this,
 		e->rect());
 
+	// m3eGram: the compose block (field row + reply/forward/edit strip) is
+	// painted by the frosted _composeBackdrop overlay above the full-height
+	// list, not here - the list scrolls under it now.
 	Painter p(this);
-	const auto clip = e->rect();
-	if (_list) {
-		const auto restrictionHidden = fieldOrDisabledShown()
-			|| isRecording();
-		if (restrictionHidden
-			|| replyTo()
-			|| readyToForward()
-			|| _kbShown
-			|| _suggestOptions) {
-			if (!isSearching()) {
-				drawField(p, clip);
-			}
-		}
-	} else {
+	if (!_list) {
 		const auto w = 0
 			+ st::msgServiceFont->width(tr::lng_willbe_history(tr::now))
 			+ st::msgPadding.left()

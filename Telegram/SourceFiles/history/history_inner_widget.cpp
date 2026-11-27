@@ -4547,7 +4547,7 @@ void HistoryInner::recountHistoryGeometry(bool initial) {
 	const auto visibleHeight = _scroll->height();
 	auto oldHistoryMarginTop = std::max(
 		visibleHeight - historyHeight() - _historyMarginBottom,
-		0);
+		_viewportTopInset);
 	if (aboutAboveHistory) {
 		accumulate_max(oldHistoryMarginTop, _aboutView->height);
 	}
@@ -4613,7 +4613,7 @@ void HistoryInner::recountHistoryGeometry(bool initial) {
 
 	auto newHistoryMarginTop = std::max(
 		visibleHeight - historyHeight() - _historyMarginBottom,
-		0);
+		_viewportTopInset);
 	if (aboutAboveHistory) {
 		accumulate_max(newHistoryMarginTop, _aboutView->height);
 	}
@@ -4815,6 +4815,15 @@ void HistoryInner::setItemsRevealHeight(int revealHeight) {
 	_revealHeight = revealHeight;
 }
 
+void HistoryInner::setViewportInsets(int top, int bottom) {
+	// m3eGram: the panels (top bar stack / compose stack) overlay the
+	// full-height scroll area, their heights are reserved as content margins
+	// instead of shrinking the viewport. Applied on the next
+	// recountHistoryGeometry() / updateSize() pass.
+	_viewportTopInset = top;
+	_viewportBottomInset = bottom;
+}
+
 const std::vector<Ui::CollapseGap> &HistoryInner::collapseGaps() const {
 	static const auto kNone = std::vector<Ui::CollapseGap>();
 	return _thanosController ? _thanosController->renderGaps() : kNone;
@@ -4845,13 +4854,14 @@ void HistoryInner::updateSize() {
 	const auto itemsHeight = historyHeight() - _revealHeight + collapseGapTotal;
 	const auto aboutAboveHistory = _aboutView && _aboutView->aboveHistory();
 	const auto aboutBelowHistory = _aboutView && !aboutAboveHistory;
-	auto newHistoryMarginBottom = st::historyPaddingBottom;
+	auto newHistoryMarginBottom = _viewportBottomInset
+		+ st::historyPaddingBottom;
 	if (aboutBelowHistory) {
 		accumulate_max(newHistoryMarginBottom, _aboutView->height);
 	}
 	auto newHistoryMarginTop = std::max(
 		visibleHeight - itemsHeight - newHistoryMarginBottom,
-		0);
+		_viewportTopInset);
 	if (aboutAboveHistory) {
 		accumulate_max(newHistoryMarginTop, _aboutView->height);
 	}

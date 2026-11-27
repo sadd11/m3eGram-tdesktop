@@ -36,7 +36,7 @@ jobs:
       - uses: al-cheb/configure-pagefile-action@v1.4
         with:
           minimum-size: 16GB
-          maximum-size: 32GB
+          maximum-size: 64GB
           disk-root: 'D:'
       - uses: ilammy/msvc-dev-cmd@v1
         with:
@@ -64,10 +64,15 @@ jobs:
           #  - no shared vc143.pdb LIMIT(12) / C2471 cascade: the compile-time
           #    PDB stays tiny; /Zi pushed ~1200 TUs of full debug info into one
           #    PDB that hit the PDB format ceiling (error code 12 = LIMIT).
-          _CL_: /Zd /Zf
-          # Link-side insurance: raise the Telegram.pdb page ceiling from the
-          # default 4 GiB (4KiB pages) to 16 GiB, so /DEBUG link can never hit
-          # LNK1318 "Unexpected PDB error; LIMIT (12)".
+          _CL_: /Zd /Zf /MP2
+          # /MP2 caps in-project cl.exe parallelism (cmake_helpers would use
+          # the core count): /m:2 × /MP4 peaked at 8 cl.exe each mapping the
+          # huge PCH and exhausted commit charge -> C1060 on the largest TUs.
+          # _CL_ is appended after the command line, so the later /MP2 wins.
+          # /m:2 × /MP2 = max 4 concurrent cl.exe (~20GB commit, fits 16GB RAM
+          # + pagefile). Link-side insurance: raise the Telegram.pdb page
+          # ceiling from the default 4 GiB (4KiB pages) to 16 GiB, so /DEBUG
+          # link can never hit LNK1318 "Unexpected PDB error; LIMIT (12)".
           _LINK_: /pdbpagesize:16384
         run: |
           cd Telegram

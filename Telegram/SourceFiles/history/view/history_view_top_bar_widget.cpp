@@ -78,6 +78,8 @@ namespace HistoryView {
 namespace {
 
 constexpr auto kEmojiInteractionSeenDuration = 3 * crl::time(1000);
+// m3eGram: translucent tint over the frosted bar backdrop.
+constexpr auto kPanelBackdropTintAlpha = 185;
 
 [[nodiscard]] inline bool HasGroupCallMenu(not_null<PeerData*> peer) {
 	return !peer->isUser()
@@ -523,12 +525,34 @@ int TopBarWidget::resizeGetHeight(int newWidth) {
 	return st::topBarHeight;
 }
 
+void TopBarWidget::setBackdropCapture(Fn<QImage()> capture) {
+	// m3eGram: frosted backdrop of the list scrolling under the bar.
+	_backdrop.setCapture(this, std::move(capture));
+	update();
+}
+
+void TopBarWidget::invalidateBackdrop() {
+	_backdrop.invalidate();
+	update();
+}
+
 void TopBarWidget::paintEvent(QPaintEvent *e) {
 	if (_animatingMode) {
 		return;
 	}
 	updateConnectingState();
-	Painter p(this);
+
+	auto p = Painter(this);
+	if (_backdrop.ensureStarted()) {
+		// m3eGram: frosted backdrop instead of the opaque fill; the tint
+		// keeps the bar content readable over the blurred list.
+		_backdrop.paint(p);
+		auto tint = st::topBarBg->c;
+		tint.setAlpha(kPanelBackdropTintAlpha);
+		p.fillRect(QRect(0, 0, width(), st::topBarHeight), tint);
+	} else {
+		p.fillRect(QRect(0, 0, width(), st::topBarHeight), st::topBarBg);
+	}
 
 	const auto selectedButtonsTop = countSelectedButtonsTop(
 		_selectedShown.value(showSelectedActions() ? 1. : 0.));
@@ -537,7 +561,6 @@ void TopBarWidget::paintEvent(QPaintEvent *e) {
 		: -st::topBarHeight;
 	const auto slidingTop = std::max(selectedButtonsTop, searchFieldTop);
 
-	p.fillRect(QRect(0, 0, width(), st::topBarHeight), st::topBarBg);
 	if (slidingTop < 0) {
 		p.translate(0, slidingTop + st::topBarHeight);
 		paintTopBar(p);
