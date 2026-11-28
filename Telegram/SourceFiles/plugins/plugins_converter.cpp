@@ -10,6 +10,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/application.h"
 #include "plugins/plugins_manager.h"
 #include "ui/boxes/confirm_box.h"
+#include "base/flat_set.h"
 #include "window/window_controller.h"
 #include "window/window_session_controller.h"
 
@@ -24,7 +25,7 @@ namespace {
 
 constexpr auto kReadChunk = 64 * 1024;
 
-[[nodiscard]] QString Warn(
+void Warn(
 		QStringList *warnings,
 		const QString &fileName,
 		int line,
@@ -33,7 +34,6 @@ constexpr auto kReadChunk = 64 * 1024;
 		*warnings << fileName + u":"_q + QString::number(line + 1) + u": "_q
 			+ text;
 	}
-	return QString();
 }
 
 // Strip a python comment (best effort: outside of string literals).
@@ -58,16 +58,16 @@ void StripComment(QString &line) {
 [[nodiscard]] QString TransformExpression(QString expression) {
 	// f-strings -> template literals (single-line, no nested braces specs).
 	static const auto fString = QRegularExpression(
-		uR"(f"([^"\\]*(?:\\.[^"\\]*)*)")");
+		R"re(f"([^"\\]*(?:\\.[^"\\]*)*)")re");
 	expression.replace(fString, u"`\\1`"_q);
 	static const auto braces = QRegularExpression(
-		uR"(\{([^:{}]+)\})");
+		R"re(\{([^:{}]+)\})re");
 	{
 		auto changed = false;
 		auto result = expression;
-		const auto it = braces.globalMatch(result);
+		auto it = braces.globalMatch(result);
 		auto out = QString();
-		auto pos = 0;
+		auto pos = qsizetype(0);
 		while (it.hasNext()) {
 			const auto match = it.next();
 			out += result.mid(pos, match.capturedStart() - pos);
@@ -157,7 +157,7 @@ void StripComment(QString &line) {
 
 [[nodiscard]] QString JsArgsFromKwargs(const QString &call) {
 	static const auto kwarg = QRegularExpression(
-		uR"((?<![=!<>])(\b\w+\b)\s*=(?!=))");
+		R"re((?<![=!<>])(\b\w+\b)\s*=(?!=))re");
 	return QString(call).replace(kwarg, u"\\1: "_q);
 }
 
@@ -217,7 +217,7 @@ QString ConvertExteraPlugin(
 
 		// Metadata constants.
 		static const auto metaRe = QRegularExpression(
-			uR"(^(__\w+__)\s*=\s*"?\s*([^"]*?)\s*"?\s*$)");
+			R"re(^(__\w+__)\s*=\s*"?\s*([^"]*?)\s*"?\s*$)re");
 		if (const auto m = metaRe.match(trimmed); m.hasMatch()) {
 			const auto key = m.captured(1);
 			const auto value = m.captured(2);
@@ -263,7 +263,7 @@ QString ConvertExteraPlugin(
 
 		// Class definition.
 		static const auto classRe = QRegularExpression(
-			uR"(^class\s+(\w+)\s*(?:\(([^)]*)\))?\s*:\s*(.*))");
+			R"re(^class\s+(\w+)\s*(?:\(([^)]*)\))?\s*:\s*(.*))re");
 		if (const auto m = classRe.match(trimmed); m.hasMatch()) {
 			while (!stack.isEmpty()) {
 				out << u"}"_q;
@@ -277,9 +277,9 @@ QString ConvertExteraPlugin(
 					? u" extends Plugin.Base"_q
 					: (u" extends /* " + base + u" */"_q));
 			emitLine(u"class %1%2 {"_q.arg(className, extends));
-			stack.push(indent);
+			stack.append(indent);
 			if (!m.captured(3).isEmpty()) {
-				warn(i, u"class one-line body moved inside");
+				warn(i, u"class one-line body moved inside"_q);
 				emitLine(TransformExpression(m.captured(3)) + u";"_q);
 				out << pad + u"}"_q;
 				stack.removeLast();
@@ -290,7 +290,7 @@ QString ConvertExteraPlugin(
 
 		// Function definition.
 		static const auto defRe = QRegularExpression(
-			uR"(^(async\s+)?def\s+(\w+)\s*\((.*)\)\s*:\s*(.*))");
+			R"re(^(async\s+)?def\s+(\w+)\s*\((.*)\)\s*:\s*(.*))re");
 		if (const auto m = defRe.match(trimmed); m.hasMatch()) {
 			while (!stack.isEmpty() && stack.last() >= indent) {
 				out << u"}"_q;
@@ -335,7 +335,7 @@ QString ConvertExteraPlugin(
 				isAsync,
 				name,
 				argList.join(u", "_q)));
-			stack.push(indent);
+			stack.append(indent);
 			if (!m.captured(4).isEmpty()) {
 				emitLine(TransformExpression(m.captured(4)) + u";"_q);
 				out << pad + u"}"_q;
@@ -347,7 +347,7 @@ QString ConvertExteraPlugin(
 
 		// Block continuations: elif / else / except / finally.
 		static const auto contRe = QRegularExpression(
-			uR"(^(elif|else|except|finally)\b\s*(.*))");
+			R"re(^(elif|else|except|finally)\b\s*(.*))re");
 		if (const auto m = contRe.match(trimmed); m.hasMatch()) {
 			const auto kind = m.captured(1);
 			if (stack.isEmpty() || stack.last() != indent) {
@@ -367,27 +367,27 @@ QString ConvertExteraPlugin(
 				opener = u"} finally {"_q;
 			}
 			emitLine(opener);
-			stack.push(indent);
+			stack.append(indent);
 			continue;
 		}
 
 		// Block openers.
 		static const auto ifRe = QRegularExpression(
-			uR"(^if\s+(.+?)\s*:\s*(.*))");
+			R"re(^if\s+(.+?)\s*:\s*(.*))re");
 		static const auto forRe = QRegularExpression(
-			uR"(^for\s+(.+?)\s+in\s+(.+?)\s*:\s*(.*))");
+			R"re(^for\s+(.+?)\s+in\s+(.+?)\s*:\s*(.*))re");
 		static const auto whileRe = QRegularExpression(
-			uR"(^while\s+(.+?)\s*:\s*(.*))");
+			R"re(^while\s+(.+?)\s*:\s*(.*))re");
 		static const auto tryRe = QRegularExpression(u"^try\\s*:\\s*(.*)");
 		static const auto withRe = QRegularExpression(
-			uR"(^with\s+(.+?)\s*:\s*(.*))");
+			R"re(^with\s+(.+?)\s*:\s*(.*))re");
 		const auto openBlock = [&](const QString &header) {
 			while (!stack.isEmpty() && stack.last() > indent) {
 				out << u"}"_q;
 				stack.removeLast();
 			}
 			emitLine(header);
-			stack.push(indent);
+			stack.append(indent);
 		};
 		if (const auto m = ifRe.match(trimmed); m.hasMatch()
 			&& trimmed.startsWith(u"if "_q)) {
@@ -438,7 +438,7 @@ QString ConvertExteraPlugin(
 		}
 		if (const auto m = withRe.match(trimmed); m.hasMatch()
 			&& trimmed.startsWith(u"with "_q)) {
-			warn(i, u"'with' converted to a plain block - check resource use");
+			warn(i, u"'with' converted to a plain block - check resource use"_q);
 			openBlock(u"{ /* with %1 */"_q.arg(m.captured(1)));
 			continue;
 		}
@@ -464,7 +464,7 @@ QString ConvertExteraPlugin(
 
 		// Settings rows: Header(..) / Switch(..) / ... -> object literals.
 		static const auto rowCtor = QRegularExpression(
-			uR"(^(\w+)\((.*)\)\s*$)");
+			R"re(^(\w+)\((.*)\)\s*$)re");
 		static const auto kRowTypes = base::flat_set<QString>{
 			u"Header"_q, u"Divider"_q, u"Switch"_q, u"Selector"_q,
 			u"Input"_q, u"Text"_q, u"EditText"_q,
@@ -596,39 +596,39 @@ private:
 		return (_file.error() == QFileDevice::NoError) ? 0 : -1;
 	}
 
-	static voidpf Open(voidpf opaque, const void *filename, int mode) {
+	static voidpf Open(voidpf opaque, const void *, int) {
 		return static_cast<ZipFromFile*>(opaque)->open();
 	}
 
-	static uLong Read(voidpf opaque, voidpf stream, void *buf, uLong size) {
+	static uLong Read(voidpf opaque, voidpf, void *buf, uLong size) {
 		return static_cast<ZipFromFile*>(opaque)->read(buf, size);
 	}
 
 	static uLong Write(
 			voidpf opaque,
-			voidpf stream,
+			voidpf,
 			const void *buf,
 			uLong size) {
 		return static_cast<ZipFromFile*>(opaque)->write(buf, size);
 	}
 
-	static ZPOS64_T Tell(voidpf opaque, voidpf stream) {
+	static ZPOS64_T Tell(voidpf opaque, voidpf) {
 		return static_cast<ZipFromFile*>(opaque)->tell();
 	}
 
 	static long Seek(
 			voidpf opaque,
-			voidpf stream,
+			voidpf,
 			ZPOS64_T offset,
 			int origin) {
 		return static_cast<ZipFromFile*>(opaque)->seek(offset, origin);
 	}
 
-	static int Close(voidpf opaque, voidpf stream) {
+	static int Close(voidpf opaque, voidpf) {
 		return static_cast<ZipFromFile*>(opaque)->close();
 	}
 
-	static int Error(voidpf opaque, voidpf stream) {
+	static int Error(voidpf opaque, voidpf) {
 		return static_cast<ZipFromFile*>(opaque)->error();
 	}
 

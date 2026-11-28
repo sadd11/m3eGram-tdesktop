@@ -33,10 +33,10 @@ public:
 	[[nodiscard]] JSContext *context() const;
 
 	// Evaluate a script (module-like global code), returns false on error.
-	[[nodiscard]] bool eval(const QByteArray &code, const QString &name);
+	bool eval(const QByteArray &code, const QString &name);
 
 	// Resolve a dotted global path ("Plugin._invoke") and call it.
-	[[nodiscard]] QVariant callGlobal(
+	QVariant callGlobal(
 		const QString &dottedName,
 		const QVariantList &args,
 		bool *ok = nullptr);
@@ -59,7 +59,7 @@ public:
 	[[nodiscard]] QString lastError() const;
 
 private:
-	static JSValue _interruptHandler(JSContext *ctx, void *opaque);
+	static int _interruptHandler(JSRuntime *rt, void *opaque);
 
 	void reset();
 

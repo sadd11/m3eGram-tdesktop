@@ -223,7 +223,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_info.h"
 #include "styles/style_iv.h"
 #include "styles/style_layers.h"
-#include "ui/style/style_palette.h" // m3eGram
+#include "ui/style/style_core.h" // m3eGram
 
 #include <QtGui/QWindow>
 #include <QtCore/QMimeData>

@@ -8,6 +8,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "plugins/plugins_manager.h"
 
 #include "apiwrap.h"
+#include "api/api_common.h"
 #include "core/application.h"
 #include "data/data_changes.h"
 #include "data/data_peer_id.h"
@@ -18,6 +19,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_account.h"
 #include "main/main_domain.h"
 #include "main/main_session.h"
+#include "settings.h"
 #include "ui/boxes/confirm_box.h"
 #include "window/window_controller.h"
 #include "window/window_session_controller.h"
@@ -55,6 +57,12 @@ constexpr auto kLogLinesLimit = 500;
 		: peer->isChannel()
 		? u"channel"_q
 		: u"chat"_q;
+}
+
+[[nodiscard]] QJsonObject ToJsonObject(const QVariant &value) {
+	return (value.typeId() == QMetaType::QJsonObject)
+		? value.toJsonObject()
+		: QJsonObject::fromVariantMap(value.toMap());
 }
 
 } // namespace
@@ -173,7 +181,7 @@ void Manager::loadState() {
 		state.enabled = value.value(u"enabled"_q).toBool();
 		state.settings = value.value(u"settings"_q).toObject();
 		state.storage = value.value(u"storage"_q).toObject();
-		_state.insert(it.key(), std::move(state));
+		_state.insert_or_assign(it.key(), std::move(state));
 	}
 }
 
@@ -497,7 +505,7 @@ void Manager::subscribeAccounts() {
 		subscribeAccount(withIndex.index, withIndex.account.get());
 	}
 	domain->accountsChanges(
-	) | rpl::start_with_next([=] {
+	) | rpl::on_next([=] {
 		for (const auto &withIndex : domain->accounts()) {
 			subscribeAccount(withIndex.index, withIndex.account.get());
 		}
@@ -511,14 +519,14 @@ void Manager::subscribeAccount(int index, not_null<Main::Account*> account) {
 	// Kept alive by the shared_ptr captured into the subscription itself.
 	const auto sub = std::make_shared<AccountSub>();
 	account->sessionValue(
-	) | rpl::start_with_next([=](Main::Session *session) {
+	) | rpl::on_next([=](Main::Session *session) {
 		sub->inner.destroy();
 		if (!session) {
 			return;
 		}
 		session->changes().messageUpdates(
 			Data::MessageUpdate::Flag::NewAdded
-		) | rpl::start_with_next([=](const Data::MessageUpdate &update) {
+		) | rpl::on_next([=](const Data::MessageUpdate &update) {
 			onNewMessage(session, index, update.item);
 		}, sub->inner);
 	}, sub->outer);
@@ -526,7 +534,7 @@ void Manager::subscribeAccount(int index, not_null<Main::Account*> account) {
 }
 
 void Manager::onNewMessage(
-		not_null<Main::Session*> session,
+		not_null<Main::Session*>,
 		int accountIndex,
 		not_null<HistoryItem*> item) {
 	if (!_inited || _loaded.empty()) {
@@ -638,7 +646,6 @@ QVariant Manager::hostCallFromPlugin(
 		if (!beginAsyncForPlugin(pluginId, asyncId)) {
 			return fail(u"Plugin is not loaded"_q);
 		}
-		const auto weak = base::make_weak(controller);
 		const auto confirmText = args.value(u"confirmText"_q).toString();
 		const auto cancelText = args.value(u"cancelText"_q).toString();
 		controller->show(Ui::MakeConfirmBox({
@@ -657,7 +664,7 @@ QVariant Manager::hostCallFromPlugin(
 		return QVariantMap{ { u"__async"_q, asyncId } };
 	} else if (method == u"client.account") {
 		const auto &domain = Core::App().domain();
-		return indexOfAccount(domain.active());
+		return indexOfAccount(&domain.active());
 	} else if (method == u"client.sendToCurrentChat") {
 		const auto window = Core::App().activeWindow();
 		const auto controller = window ? window->sessionController() : nullptr;
@@ -688,7 +695,7 @@ QVariant Manager::hostCallFromPlugin(
 		if (!peer) {
 			return fail(u"Peer not found"_q);
 		}
-		const auto history = peer->history();
+		const auto history = session->data().history(peerId);
 		auto to = Api::MessageToSend(Api::SendAction(history));
 		to.textWithTags = TextWithTags{
 			args.value(u"text"_q).toString(),
@@ -715,13 +722,13 @@ QVariant Manager::hostCallFromPlugin(
 			: [&] {
 				const auto json = args.value(u"json"_q);
 				auto body = QByteArray();
-				if (!json.isNull() && !QJsonObject::fromVariant(json).isEmpty()) {
+				const auto object = ToJsonObject(json);
+				if (!json.isNull() && !object.isEmpty()) {
 					request.setHeader(
 						QNetworkRequest::ContentTypeHeader,
 						u"application/json"_q);
-					body = QJsonDocument(
-						QJsonObject::fromVariant(json)).toJson(
-							QJsonDocument::Compact);
+					body = QJsonDocument(object).toJson(
+						QJsonDocument::Compact);
 				} else {
 					request.setHeader(
 						QNetworkRequest::ContentTypeHeader,
@@ -773,7 +780,7 @@ bool Manager::processOutgoingMessage(
 	if (!_inited || _loaded.empty()) {
 		return true;
 	}
-	const auto accountIndex = indexOfAccount(session->account());
+	const auto accountIndex = indexOfAccount(&session->account());
 	const auto peer = message.action.history->peer;
 	auto text = message.textWithTags.text;
 	auto cancelled = false;
@@ -789,7 +796,7 @@ bool Manager::processOutgoingMessage(
 			{ u"peerType"_q, PeerTypeOf(peer) },
 			{ u"replyTo"_q, double(
 				message.action.replyTo.messageId
-					? message.action.replyTo.messageId.bare
+					? message.action.replyTo.messageId.msg.bare
 					: 0) },
 		};
 		const DispatchGuard guard(loaded.runtime.get());

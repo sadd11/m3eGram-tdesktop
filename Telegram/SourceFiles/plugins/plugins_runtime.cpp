@@ -7,6 +7,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "plugins/plugins_runtime.h"
 
+#include <QtCore/QJsonObject>
+#include <QtCore/QJsonValue>
+
 #include <algorithm>
 #include <vector>
 
@@ -69,19 +72,20 @@ JSContext *Runtime::context() const {
 	return _ctx;
 }
 
-JSValue Runtime::_interruptHandler(JSContext *, void *opaque) {
+// QuickJS: a non-zero result interrupts the running script.
+int Runtime::_interruptHandler(JSRuntime *, void *opaque) {
 	const auto runtime = static_cast<Runtime *>(opaque);
 	if (!runtime || !runtime->_dispatching) {
 		// Not our dispatch (e.g. a promise job after the guard ended) -
 		// don't interrupt anything.
-		return JS_TRUE;
+		return 0;
 	}
 	if (runtime->_dispatchTimer.isValid()
 		&& runtime->_dispatchTimer.elapsed() > kMaxDispatchMs) {
 		runtime->_interrupted = true;
-		return JS_FALSE;
+		return 1;
 	}
-	return JS_TRUE;
+	return 0;
 }
 
 bool Runtime::eval(const QByteArray &code, const QString &name) {
@@ -115,7 +119,7 @@ QVariant Runtime::valueToVariant(JSValue value, int depth) {
 	case JS_TAG_FLOAT64:
 		return QVariant(JS_VALUE_GET_FLOAT64(value));
 	case JS_TAG_STRING: {
-		auto size = 0;
+		auto size = size_t(0);
 		const auto raw = JS_ToCStringLen(_ctx, &size, value);
 		if (!raw) {
 			return QVariant();
@@ -125,7 +129,7 @@ QVariant Runtime::valueToVariant(JSValue value, int depth) {
 		return result;
 	}
 	case JS_TAG_OBJECT: {
-		if (JS_IsArray(_ctx, value) == 1) {
+		if (JS_IsArray(value)) {
 			const auto lengthValue = JS_GetPropertyStr(_ctx, value, "length");
 			auto length = 0;
 			JS_ToInt32(_ctx, &length, lengthValue);
@@ -153,7 +157,7 @@ QVariant Runtime::valueToVariant(JSValue value, int depth) {
 		}
 		for (uint32_t i = 0; i != count && i < kMaxObjectKeys; ++i) {
 			const auto keyString = JS_AtomToString(_ctx, tab[i].atom);
-			auto keySize = 0;
+			auto keySize = size_t(0);
 			const auto keyRaw = JS_IsString(keyString)
 				? JS_ToCStringLen(_ctx, &keySize, keyString)
 				: nullptr;
@@ -161,7 +165,7 @@ QVariant Runtime::valueToVariant(JSValue value, int depth) {
 				const auto item = JS_GetProperty(_ctx, value, tab[i].atom);
 				object.insert(
 					QString::fromUtf8(keyRaw, keySize),
-					valueToVariant(item, depth + 1));
+					QJsonValue::fromVariant(valueToVariant(item, depth + 1)));
 				JS_FreeValue(_ctx, item);
 				JS_FreeCString(_ctx, keyRaw);
 			}
@@ -269,8 +273,11 @@ QVariant Runtime::callGlobal(
 			JS_FreeValue(_ctx, arg);
 		}
 	}
+	// The global object reference was already released by the lookup loop.
+	if (JS_IsException(callable)) {
+		JS_FreeValue(_ctx, JS_GetException(_ctx));
+	}
 	JS_FreeValue(_ctx, callable);
-	JS_FreeValue(_ctx, object);
 	auto variant = QVariant();
 	const auto success = callableOk && !JS_IsException(result);
 	if (success) {
@@ -324,7 +331,7 @@ QString Runtime::lastError() const {
 
 void Runtime::captureException() {
 	const auto exception = JS_GetException(_ctx);
-	auto size = 0;
+	auto size = size_t(0);
 	const auto raw = JS_ToCStringLen(_ctx, &size, exception);
 	if (raw) {
 		_lastError = QString::fromUtf8(raw, size);
@@ -336,7 +343,7 @@ void Runtime::captureException() {
 	if (JS_IsObject(exception)) {
 		const auto stack = JS_GetPropertyStr(_ctx, exception, "stack");
 		if (JS_IsString(stack)) {
-			auto stackSize = 0;
+			auto stackSize = size_t(0);
 			const auto stackRaw = JS_ToCStringLen(_ctx, &stackSize, stack);
 			if (stackRaw) {
 				_lastError += u"\n"_q + QString::fromUtf8(stackRaw, stackSize);

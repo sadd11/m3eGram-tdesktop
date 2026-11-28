@@ -234,13 +234,13 @@ void PluginsSection::showDetail(const QString &fileName) {
 			const auto field = _detail->add(object_ptr<Ui::InputField>(
 				_detail,
 				st::defaultInputField,
-				row.value(u"hint"_q).toString(),
+				rpl::single(row.value(u"hint"_q).toString()),
 				value.toString()));
 			if (type == u"edittext") {
 				field->setMinimumHeight(st::defaultInputField.heightMin * 2);
 			}
 			field->changes(
-			) | rpl::start_with_next([=] {
+			) | rpl::on_next([=] {
 				manager->settingChanged(fileName, key, field->getLastText());
 				if (!callbackId.isEmpty()) {
 					manager->fireCallback(
@@ -370,7 +370,7 @@ void PluginsSection::setupContent() {
 	rebuildList();
 
 	manager->changed(
-	) | rpl::start_with_next([=] {
+	) | rpl::on_next([=] {
 		rebuildList();
 		if (!_detailFileName.isEmpty()) {
 			showDetail(_detailFileName);
@@ -378,7 +378,7 @@ void PluginsSection::setupContent() {
 	}, _changedLifetime);
 
 	_content->geometryValue(
-	) | rpl::start_with_next([=](QRect) {
+	) | rpl::on_next([=](QRect) {
 		relayout();
 	}, _content->lifetime());
 

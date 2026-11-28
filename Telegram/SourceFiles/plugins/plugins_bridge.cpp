@@ -168,6 +168,10 @@ const logger = {
 	warning: console.warn,
 	error: console.error,
 };
+// Top-level const/class are global lexical bindings, not properties of the
+// global object - Runtime::callGlobal() resolves "Plugin._x" through the
+// global object, so expose Plugin there explicitly.
+globalThis.Plugin = Plugin;
 Plugin._bootstrapReady = true;
 )JS";
 
@@ -181,7 +185,7 @@ Bridge::Bridge(Runtime *runtime, QString pluginId)
 Bridge::~Bridge() {
 	if (_runtime && _runtime->context()) {
 		const auto ctx = _runtime->context();
-		for (const auto &[id, pair] : _pending) {
+		for (const auto &[id, pair] : _pending.asKeyValueRange()) {
 			JS_FreeValue(ctx, pair.first);
 			JS_FreeValue(ctx, pair.second);
 		}
@@ -289,7 +293,7 @@ JSValue Bridge::_fnHostCall(
 	if (!self || argc < 1) {
 		return JS_UNDEFINED;
 	}
-	auto size = 0;
+	auto size = size_t(0);
 	const auto methodRaw = JS_ToCStringLen(ctx, &size, argv[0]);
 	if (!methodRaw) {
 		return JS_UNDEFINED;
@@ -302,7 +306,7 @@ JSValue Bridge::_fnHostCall(
 			return JS_UNDEFINED;
 		}
 		const auto idValue = JS_GetPropertyStr(ctx, argv[1], "id");
-		auto idSize = 0;
+		auto idSize = size_t(0);
 		const auto idRaw = JS_ToCStringLen(ctx, &idSize, idValue);
 		JS_FreeValue(ctx, idValue);
 		if (!idRaw) {
