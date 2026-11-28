@@ -14,7 +14,7 @@ index 28095c2..530bbbb 100644
  dateRadius: roundRadiusLarge;
  
 diff --git a/ui/colors.palette b/ui/colors.palette
-index e2ba0d6..8e0d409 100644
+index e2ba0d6..f5b17f2 100644
 --- a/ui/colors.palette
 +++ b/ui/colors.palette
 @@ -6,22 +6,22 @@
@@ -910,7 +910,7 @@ index e2ba0d6..8e0d409 100644
  rankUserFg: windowSubTextFg; // regular user badge text, gray
  
 -dialogsMentionIconFg: #40a7e3 | dialogsVerifiedIconBg; // chat list mention icon
-+dialogsMentionIconFg: windowBgActive | dialogsVerifiedIconBg; // chat list mention icon
++dialogsMentionIconFg: #006591 | dialogsVerifiedIconBg; // chat list mention icon
  dialogsReactionIconFg: #e05356 | attentionButtonFg; // chat list reaction icon
  dialogsPollIconFg: #997be1 | historyPeer5NameFg; // chat list poll icon
 diff --git a/ui/effects/panel_animation.cpp b/ui/effects/panel_animation.cpp
